@@ -1,0 +1,18 @@
+#login_button {
+  display: block;
+  justify-self: right;
+  border-radius: 999px;
+  width: 100px;
+}
+
+h1 {
+  color: rgba(14, 83, 62, 0.623);
+  text-align: center;
+}
+
+form {
+  border: 1px solid black;
+  display: block;
+  justify-self: center;
+  padding: 30px;
+}

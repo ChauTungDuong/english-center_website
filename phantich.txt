@@ -1,0 +1,56 @@
+- Xác định các yêu cầu cần có cho các trang: 
+    - Admin : 
+        + Thêm lớp học theo năm, đóng lớp, chỉnh sửa lớp (thêm thông tin, thêm giáo viên, thêm học sinh)
+        + Xem số lượng giáo viên, giáo viên từng lớp, xem danh sách lớp học, xem danh sách (thông tin) phụ huynh / học sinh
+        + Xem số lượng học sinh tăng giảm theo tháng
+        + Xem số tiền học sinh đã đóng (tổng) theo số buổi học của học sinh 
+        + Xem số tiền đã thu của học sinh 
+    - Giáo viên :
+        + Xem danh sách, thông tin lớp đang dạy
+        + Điểm danh học sinh (hệ thống lưu dữ liệu để thông báo)
+    - Học sinh : 
+        + Xem lớp đang học, học bao nhiêu buổi, nghỉ bao nhiêu buổi.
+    
+    - Phụ huynh :
+        + Xem thông tin con cái
+        + Xem lớp học của con (giáo viên, nếu có)
+        + Xem con học bao nhiêu buổi, nghỉ bao nhiêu buổi (cụ thể)
+        + Xem số tiền học chưa đóng theo tháng/ quý / năm, tổng số tiền chưa đóng
+        + Xem số tiền đã giảm 
+
+
+- Tiện rảnh viết write-up cho mấy cái API luôn : 
+- Các API chung gồm có : 
+    + Login : POST /v1/api/login, đầu vào : email, mật khẩu. Trả về token, 
+              frontend lưu lại token để thực hiện các chức năng tiếp theo.
+- API cho Admin (tất cả đều cần có token admin):
+    + Tạo người dùng : POST /v1/api/user, truyền vào các tham số tương ứng. 
+                       Backend lấy được các thông tin tương ứng sẽ dựa vào role 
+                       để tạo ra User và role cụ thể như Học sinh, Giáo viên hay Phụ huynh.
+
+    + Tạo lớp học : POST /v1/api/class, truyền vào các tham số cơ bản, ngoài ra còn có studentList 
+                    chứa các id của học sinh. Cần nghiên cứu thêm vấn đề cập nhật classId ở phía Student mỗi khi thêm Student vào lớp, và ngược lại.
+
+- Mô tả giao diện : Mặc định, admin có một trang giao diện gồm các mục Quản lý người dùng, Quản lý lớp học, Thống kê
+    + Quản lý người dùng : Là giao diện chia 2 phần : phần trên gồm các tính năng : Thêm người dùng mới, tìm kiếm, lọc theo chức năng.
+                           Phần dưới gồm danh sách người dùng với các thông tin : tên, email, vai trò, kèm theo các 
+                           nút chức năng : Chi tiết, sửa, xóa.
+                           Khi ấn vào chi tiết, sẽ xem được chi tiết thông tin người dùng, tùy theo vai trò mà sẽ có form pop-up,
+                           ví dụ : Với người dùng là Học sinh, thì có nút "Thêm vào lớp", khi ấn vào thì hiển thị danh sách lớp đang có, chọn để thêm.
+                           Với phụ huynh, thì có nút "Thêm con cái", với Giáo viên thì là "Thêm lớp dạy",...
+                           (mở rộng) : Cho phép chọn nhiều người dùng và thực hiện một thao tác cụ thể. Ví dụ : Chọn nhiều 
+                           học sinh rồi thêm vào 1 lớp cụ thể, chọn nhiều người dùng để xóa,... Sử dụng checkbox để tick chọn.
+
+    + Quản lý lớp học : Cũng tương tự như trang quản lý người dùng nhưng sẽ có danh sách các lớp, có nút "Thêm lớp mới", khi ấn vào chi tiết lớp có thể
+                        thêm học sinh / giáo viên cho lớp đó, và nút "Xem danh sách điểm danh"
+                        Có thêm nút "Thêm lịch học" cho lớp mỗi khi ấn vào 1 lớp.
+    
+    + Thống kê : Xem được các thông tin như tổng số tiền học sinh đã đóng, tổng số tiền dự kiến thu được (tính theo số buổi học của học sinh), lọc theo 
+                 tháng, quý, năm.
+                 Xem được số học sinh mới đăng kí theo tháng.
+                 Xem tổng quan số giáo viên, số lớp đang mở/ đã đóng
+
+- Mô tả giao diện người dùng : 
+    + Học sinh : Xem được lớp đang học, danh sách lớp (chỉ tên, tuổi), giáo viên dạy lớp đó.
+    + Phụ huynh : Xem được con mình đang học lớp nào, giáo viên nào.
+    + Giáo viên : Xem các lớp đang dạy, điểm danh
