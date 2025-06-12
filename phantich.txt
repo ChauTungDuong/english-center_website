@@ -31,6 +31,9 @@
     + Tạo lớp học : POST /v1/api/class, truyền vào các tham số cơ bản, ngoài ra còn có studentList 
                     chứa các id của học sinh. Cần nghiên cứu thêm vấn đề cập nhật classId ở phía Student mỗi khi thêm Student vào lớp, và ngược lại.
 
+    + Lấy danh sách người dùng : GET /v1/api/user, trả về danh sách người dùng, có thể truyền vào các tham số để lọc theo role, email, tên.
+    + Xóa người dùng : DELETE /v1/api/user/{id}, xóa người dùng theo id.
+
 - Mô tả giao diện : Mặc định, admin có một trang giao diện gồm các mục Quản lý người dùng, Quản lý lớp học, Thống kê
     + Quản lý người dùng : Là giao diện chia 2 phần : phần trên gồm các tính năng : Thêm người dùng mới, tìm kiếm, lọc theo chức năng.
                            Phần dưới gồm danh sách người dùng với các thông tin : tên, email, vai trò, kèm theo các 
@@ -51,6 +54,6 @@
                  Xem tổng quan số giáo viên, số lớp đang mở/ đã đóng
 
 - Mô tả giao diện người dùng : 
-    + Học sinh : Xem được lớp đang học, danh sách lớp (chỉ tên, tuổi), giáo viên dạy lớp đó.
+    + Học sinh : Xem được lớp đang học, danh sách lớp (chỉ có tên, tuổi hoặc email người dùng khác), giáo viên dạy lớp đó.
     + Phụ huynh : Xem được con mình đang học lớp nào, giáo viên nào.
     + Giáo viên : Xem các lớp đang dạy, điểm danh

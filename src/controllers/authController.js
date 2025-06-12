@@ -12,7 +12,7 @@ const login = async (req, res) => {
   if (!user) {
     return res.status(401).json({ msg: "Email không tồn tại" });
   }
-  const isMatch = hashCompare(password, user.password);
+  const isMatch = await hashCompare(password, user.password);
   if (!isMatch) {
     return res.status(401).json({ msg: "Sai mật khẩu" });
   }
