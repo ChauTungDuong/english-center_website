@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
 const classSchema = new mongoose.Schema(
   {
-    className: String,
-    year: Number,
+    className: { type: String, required: true },
+    year: { type: Number, required: true },
+    grade: { type: Number, required: true },
     isAvailable: { type: Boolean, default: true },
     feePerLesson: Number,
     teacherId: { type: mongoose.Schema.ObjectId, ref: "Teacher" },

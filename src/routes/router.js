@@ -9,23 +9,53 @@ const {
   updateUser,
   getUserInfo,
   getProfile,
+  getClassDetails,
+  updateClass,
+  deleteClass,
 } = require("../controllers");
+const {
+  studentOverview,
+  teacherOverview,
+  classOverview,
+  classDetails,
+  userOverview,
+} = require("../services/filterOptions");
 
-const { User } = require("../models");
+const { User, Class } = require("../models");
 const { verifyRole, checkToken } = require("../middleware/authMiddleware");
-const pagination = require("../middleware/pagination");
+const paginate = require("../middleware/pagination");
 const router = express.Router();
-
+//router for user management
 router.post("/login", login);
 router.post("/user", verifyRole(["Admin"]), createNewUser);
-router.post("/class", verifyRole(["Admin"]), createNewClass);
-router.get("/class", verifyRole(["Admin"]), getAllClasses);
-
-router.get("/user", verifyRole(["Admin"]), pagination(User), getUserList);
 router.delete("/user/:id", verifyRole(["Admin"]), deleteUser);
 router.patch("/user/:id", verifyRole(["Admin"]), updateUser);
-
 router.get("/user/:id", verifyRole(["Admin"]), getUserInfo);
+router.get(
+  "/user",
+  verifyRole(["Admin"]),
+  paginate(User, userOverview),
+  getUserList
+);
+//router for class management
+router.post("/class", verifyRole(["Admin"]), createNewClass);
+router.get(
+  "/class",
+  verifyRole(["Admin"]),
+  paginate(Class, classOverview),
+  getAllClasses
+);
+
+router.get(
+  "/class/:classId",
+  verifyRole(["Admin"]),
+  paginate(Class, classDetails),
+  getClassDetails
+);
+
+router.patch("/class/:classId", verifyRole(["Admin"]), updateClass);
+
+router.delete("/class/:classId", verifyRole(["Admin"]), deleteClass);
 
 router.get("/profile", checkToken, getProfile);
 module.exports = router;

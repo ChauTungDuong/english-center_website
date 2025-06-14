@@ -7,7 +7,11 @@ const userSchema = new mongoose.Schema(
     gender: String,
     phoneNumber: String,
     address: String,
-    role: String,
+    role: {
+      type: String,
+      enum: ["Admin", "Teacher", "Parent", "Student"],
+      required: true,
+    },
   },
   { timestamps: true }
 );

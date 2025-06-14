@@ -7,7 +7,13 @@ const {
   getProfile,
 } = require("./userController");
 const { login } = require("./authController");
-const { createNewClass, getAllClasses } = require("./classController");
+const {
+  createNewClass,
+  getAllClasses,
+  getClassDetails,
+  updateClass,
+  deleteClass,
+} = require("./classController");
 
 module.exports = {
   createNewUser,
@@ -19,4 +25,7 @@ module.exports = {
   updateUser,
   getUserInfo,
   getProfile,
+  getClassDetails,
+  updateClass,
+  deleteClass,
 };

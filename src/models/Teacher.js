@@ -3,7 +3,7 @@ const teacherSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.ObjectId, ref: "User", required: true },
     classId: [{ type: mongoose.Schema.ObjectId, ref: "Class" }],
-    wagePerLesson: Number,
+    wagePerLesson: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
