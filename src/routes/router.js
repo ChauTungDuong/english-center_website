@@ -13,6 +13,8 @@ const {
   updateClass,
   deleteClass,
   getClassSchedule,
+  getTeacherClasses,
+  createNewAttendance,
 } = require("../controllers");
 const {
   studentOverview,
@@ -27,6 +29,7 @@ const { verifyRole, checkToken } = require("../middleware/authMiddleware");
 const paginate = require("../middleware/pagination");
 const router = express.Router();
 //router for user management
+
 router.post("/login", login);
 router.post("/user", verifyRole(["Admin"]), createNewUser);
 router.delete("/user/:id", verifyRole(["Admin"]), deleteUser);
@@ -38,6 +41,7 @@ router.get(
   paginate(User, userOverview),
   getUserList
 );
+
 //router for class management
 router.post("/class", verifyRole(["Admin"]), createNewClass);
 router.get(
@@ -46,18 +50,28 @@ router.get(
   paginate(Class, classOverview),
   getAllClasses
 );
-
 router.get(
   "/class/:classId",
   verifyRole(["Admin"]),
   paginate(Class, classDetails),
   getClassDetails
 );
-
 router.get("/class/:classId/schedule", checkToken, getClassSchedule);
 router.patch("/class/:classId", verifyRole(["Admin"]), updateClass);
-
 router.delete("/class/:classId", verifyRole(["Admin"]), deleteClass);
 
+//router for attendance management
+router.post(
+  "/attendance/:classId",
+  verifyRole(["Admin", "Teacher"]),
+  createNewAttendance
+);
+//router for teacher and teacher management
+router.get(
+  "/teacher/:id/classes",
+  verifyRole(["Teacher", "Admin"]),
+  paginate(Class, classDetails),
+  getTeacherClasses
+);
 router.get("/profile", checkToken, getProfile);
 module.exports = router;

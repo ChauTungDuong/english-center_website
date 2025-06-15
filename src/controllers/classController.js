@@ -162,7 +162,7 @@ function validateClassInput(className, year, grade, isAvailable, schedule) {
 const getAllClasses = (req, res) => {
   try {
     // Destructuring để code sạch hơn
-    const { data, pagination } = res.paginatedResults;
+    const data = res.paginatedResults.data;
 
     if (!data || data.length === 0) {
       return res.status(404).json({
@@ -172,8 +172,14 @@ const getAllClasses = (req, res) => {
 
     return res.status(200).json({
       msg: "Lấy danh sách lớp học thành công",
-      data,
-      pagination,
+      data: data,
+      pagination: {
+        totalItems: res.paginatedResults.totalItems,
+        totalPages: res.paginatedResults.totalPages,
+        currentPage: res.paginatedResults.currentPage,
+        hasNext: res.paginatedResults.hasNext,
+        hasPrev: res.paginatedResults.hasPrev,
+      },
     });
   } catch (error) {
     res.status(500).json({
@@ -189,18 +195,24 @@ const getAllClasses = (req, res) => {
 const getClassDetails = (req, res) => {
   try {
     // Destructuring để code sạch hơn
-    const { data, pagination } = res.paginatedResults;
+    const data = res.paginatedResults.data;
 
     if (!data || data.length === 0) {
       return res.status(404).json({
-        msg: "Không tìm thấy lớp học",
+        msg: "Không có thông tin lớp học",
       });
     }
 
     return res.status(200).json({
       msg: "Lấy thông tin lớp học thành công",
-      data,
-      pagination,
+      data: data,
+      pagination: {
+        totalItems: res.paginatedResults.totalItems,
+        totalPages: res.paginatedResults.totalPages,
+        currentPage: res.paginatedResults.currentPage,
+        hasNext: res.paginatedResults.hasNext,
+        hasPrev: res.paginatedResults.hasPrev,
+      },
     });
   } catch (error) {
     res.status(500).json({

@@ -8,6 +8,9 @@ const teacherWageSchema = new mongoose.Schema(
     },
     classId: { type: mongoose.Schema.ObjectId, ref: "Class", required: true },
     amount: { type: Number, required: true },
+    lessonTaught: { type: Number, default: 0 },
+    month: { type: Number, required: true },
+    year: { type: Number, required: true },
     paymentDate: { type: Date, default: Date.now },
   },
   { timestamps: true }

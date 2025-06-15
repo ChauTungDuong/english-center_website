@@ -13,9 +13,11 @@ const {
   getClassDetails,
   updateClass,
   deleteClass,
-  getClassSchedule
+  getClassSchedule,
 } = require("./classController");
 
+const { getTeacherClasses } = require("./teacherController");
+const { createNewAttendance } = require("./attendanceController");
 module.exports = {
   createNewUser,
   login,
@@ -29,5 +31,7 @@ module.exports = {
   getClassDetails,
   updateClass,
   deleteClass,
-  getClassSchedule
+  getClassSchedule,
+  getTeacherClasses,
+  createNewAttendance,
 };
