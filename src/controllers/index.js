@@ -13,6 +13,7 @@ const {
   getClassDetails,
   updateClass,
   deleteClass,
+  getClassSchedule
 } = require("./classController");
 
 module.exports = {
@@ -28,4 +29,5 @@ module.exports = {
   getClassDetails,
   updateClass,
   deleteClass,
+  getClassSchedule
 };

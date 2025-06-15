@@ -1,5 +1,9 @@
 const { Class, Teacher, Student } = require("../models");
 const withTransaction = require("../utils/session");
+const {
+  generateLessonDates,
+  formatClassSchedule,
+} = require("../utils/schedule");
 const { addTeacherToClass } = require("../services/addOrRemove");
 /**
  * Tạo lớp học mới sử dụng transaction
@@ -467,10 +471,32 @@ const deleteClass = async (req, res) => {
     });
   }
 };
+const getClassSchedule = async (req, res) => {
+  try {
+    const classId = req.params.classId;
+    const classData = await Class.findById(classId);
+    if (!classData) {
+      return res.status(404).json({
+        msg: "Không tìm thấy lớp học",
+      });
+    }
+    const formattedSchedule = formatClassSchedule(classData);
+    return res.status(200).json({
+      msg: "Lấy lịch học thành công",
+      data: formattedSchedule,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      msg: "Lỗi khi lấy lịch học",
+      error: error.message,
+    });
+  }
+};
 module.exports = {
   createNewClass,
   getAllClasses,
   getClassDetails,
   updateClass,
   deleteClass,
+  getClassSchedule,
 };

@@ -9,7 +9,12 @@ const paymentSchema = new mongoose.Schema(
     },
     classId: { type: mongoose.Schema.ObjectId, ref: "Class", required: true },
     parentId: { type: mongoose.Schema.ObjectId, ref: "Parent", required: true },
-    amount: { type: Number, required: true },
+    month: { type: Number, required: true },
+    year: { type: Number, required: true },
+    amount: { type: Number, default: 0 },
+    totalLessons: { type: Number, default: 0 },
+    attendedLessons: { type: Number, default: 0 },
+    absentLessons: { type: Number, default: 0 },
     paymentDate: { type: Date, default: Date.now },
   },
   { timestamps: true }

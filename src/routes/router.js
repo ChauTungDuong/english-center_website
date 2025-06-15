@@ -12,6 +12,7 @@ const {
   getClassDetails,
   updateClass,
   deleteClass,
+  getClassSchedule,
 } = require("../controllers");
 const {
   studentOverview,
@@ -53,6 +54,7 @@ router.get(
   getClassDetails
 );
 
+router.get("/class/:classId/schedule", checkToken, getClassSchedule);
 router.patch("/class/:classId", verifyRole(["Admin"]), updateClass);
 
 router.delete("/class/:classId", verifyRole(["Admin"]), deleteClass);
