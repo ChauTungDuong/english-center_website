@@ -240,8 +240,10 @@ const updateClass = async (req, res) => {
       if (update.isAvailable !== undefined) {
         updateFields.isAvailable = update.isAvailable;
       }
-      if (update.feePerLesson) updateFields.feePerLesson = update.feePerLesson;
-      if (update.attendanceId) updateFields.attendanceId = update.attendanceId;
+      if (update.feePerLesson !== undefined)
+        updateFields.feePerLesson = update.feePerLesson;
+      if (update.attendanceId !== undefined)
+        updateFields.attendanceId = update.attendanceId;
 
       // Xử lý schedule
       if (update.schedule) {

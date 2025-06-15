@@ -17,7 +17,38 @@ const {
 } = require("./classController");
 
 const { getTeacherClasses } = require("./teacherController");
-const { createNewAttendance } = require("./attendanceController");
+const {
+  createNewAttendance,
+  getAttendanceList,
+  getAttendanceByLessonNumber,
+  takingAttendance,
+} = require("./attendanceController");
+
+const {
+  getStudentAttendance,
+  getStudentClasses,
+} = require("./studentController");
+
+const { getParentChildren, getChildPayments } = require("./parentController");
+
+const {
+  generateMonthlyPayment,
+  recordPayment,
+  calculateTeacherWage,
+  getPaymentOverview,
+  getTeacherWages,
+} = require("./paymentController");
+
+const {
+  createAnnouncement,
+  getActiveAnnouncements,
+} = require("./announcementController");
+
+const {
+  getFinancialStatistics,
+  getStudentStatistics,
+} = require("./statisticController");
+
 module.exports = {
   createNewUser,
   login,
@@ -34,4 +65,20 @@ module.exports = {
   getClassSchedule,
   getTeacherClasses,
   createNewAttendance,
+  getAttendanceList,
+  getAttendanceByLessonNumber,
+  takingAttendance,
+  getStudentAttendance,
+  getStudentClasses,
+  getParentChildren,
+  getChildPayments,
+  generateMonthlyPayment,
+  recordPayment,
+  createAnnouncement,
+  getActiveAnnouncements,
+  getFinancialStatistics,
+  getStudentStatistics,
+  calculateTeacherWage,
+  getPaymentOverview,
+  getTeacherWages,
 };

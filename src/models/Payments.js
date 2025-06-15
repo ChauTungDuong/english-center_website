@@ -11,11 +11,20 @@ const paymentSchema = new mongoose.Schema(
     parentId: { type: mongoose.Schema.ObjectId, ref: "Parent", required: true },
     month: { type: Number, required: true },
     year: { type: Number, required: true },
-    amount: { type: Number, default: 0 },
+    discountPercentage: { type: Number, default: 0 },
+    originalAmount: { type: Number, default: 0 },
+    afterDiscountAmount: { type: Number, default: 0 },
+    amountDue: { type: Number, default: 0 },
+    amountPaid: { type: Number, default: 0 },
     totalLessons: { type: Number, default: 0 },
     attendedLessons: { type: Number, default: 0 },
     absentLessons: { type: Number, default: 0 },
-    paymentDate: { type: Date, default: Date.now },
+    paymentHistory: [
+      {
+        amount: Number,
+        date: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );
