@@ -8,7 +8,7 @@ const paymentSchema = new mongoose.Schema(
       required: true,
     },
     classId: { type: mongoose.Schema.ObjectId, ref: "Class", required: true },
-    parentId: { type: mongoose.Schema.ObjectId, ref: "Parent", required: true },
+    parentId: { type: mongoose.Schema.ObjectId, ref: "Parent" },
     month: { type: Number, required: true },
     year: { type: Number, required: true },
     discountPercentage: { type: Number, default: 0 },

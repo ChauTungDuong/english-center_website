@@ -7,6 +7,8 @@ const Attendance = require("./Attendance");
 const Payment = require("./Payments");
 const TeacherWage = require("./TeacherWage");
 const Announcement = require("./Announcement");
+const ParentPaymentRequest = require("./ParentPaymentRequest");
+
 module.exports = {
   User,
   Student,
@@ -16,5 +18,6 @@ module.exports = {
   Attendance,
   Payment,
   TeacherWage,
-  Announcement
+  Announcement,
+  ParentPaymentRequest,
 };

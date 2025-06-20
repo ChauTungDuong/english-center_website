@@ -1,5 +1,11 @@
 const filterOptions = require("../services/filterOptions");
 
+// ⚠️ DEPRECATED: This middleware is no longer used.
+// All pagination logic has been moved to individual service files.
+// Each service now has its own getAll() method with built-in pagination.
+//
+// This file can be safely deleted.
+
 const paginate =
   (model, options = {}) =>
   async (req, res, next) => {

@@ -6,7 +6,7 @@ const teacherWageSchema = new mongoose.Schema(
       ref: "Teacher",
       required: true,
     },
-    classId: { type: mongoose.Schema.ObjectId, ref: "Class", required: true },
+    classId: { type: mongoose.Schema.ObjectId, ref: "Class" },
     amount: { type: Number, required: true },
     lessonTaught: { type: Number, default: 0 },
     month: { type: Number, required: true },

@@ -8,7 +8,7 @@ const classSchema = new mongoose.Schema(
     feePerLesson: Number,
     teacherId: { type: mongoose.Schema.ObjectId, ref: "Teacher" },
     studentList: [{ type: mongoose.Schema.ObjectId, ref: "Student" }],
-    attendanceId: { type: mongoose.Schema.ObjectId, ref: "Attendance" },
+    // Removed attendanceId - attendance records reference classId instead
     schedule: {
       startDate: Date,
       endDate: Date,

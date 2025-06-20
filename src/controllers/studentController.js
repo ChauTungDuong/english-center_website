@@ -1,83 +1,171 @@
-const { Student, Attendance } = require("../models");
-const getStudentClasses = async (req, res) => {
-  try {
-    const studentId = req.params.id;
-    const student = await Student.findById(studentId).populate({
-      path: "classId",
-      select: "className grade year schedule feePerLesson",
-      populate: {
-        path: "teacherId",
-        select: "userId",
-        populate: {
-          path: "userId",
-          select: "name",
-        },
-      },
-    });
+const studentService = require("../services/role_services/studentService");
 
-    if (!student) {
-      return res.status(404).json({ msg: "Học sinh không tồn tại" });
+const studentController = {
+  async createNewStudent(req, res) {
+    try {
+      const newStudent = await studentService.create(req.body);
+      return res.status(201).json({
+        msg: "Tạo học sinh thành công",
+        data: newStudent,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi tạo học sinh",
+        error: error.message,
+      });
     }
+  },
 
-    return res.status(200).json({
-      msg: "Lấy danh sách lớp học thành công",
-      data: student.classId,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      msg: "Lỗi khi lấy thông tin lớp học",
-      error: error.message,
-    });
-  }
-};
-
-const getStudentAttendance = async (req, res) => {
-  try {
-    const { studentId, classId } = req.params;
-
-    const attendance = await Attendance.findOne({ classId });
-    if (!attendance) {
-      return res.status(404).json({ msg: "Không tìm thấy dữ liệu điểm danh" });
+  async getStudentInfo(req, res) {
+    try {
+      const student = await studentService.getById(req.params.studentId);
+      return res.status(200).json({
+        msg: "Lấy thông tin học sinh thành công",
+        data: student,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi lấy thông tin học sinh",
+        error: error.message,
+      });
     }
-
-    // Thống kê điểm danh cho học sinh
-    let totalLessons = attendance.records.length;
-    let absentLessons = 0;
-
-    const studentAttendance = attendance.records.map((record) => {
-      const studentRecord = record.students.find(
-        (s) => s.studentId.toString() === studentId
+  },
+  async updateStudent(req, res) {
+    try {
+      const updatedStudent = await studentService.update(
+        req.params.studentId,
+        req.body
       );
+      return res.status(200).json({
+        msg: "Cập nhật thông tin học sinh thành công",
+        data: updatedStudent,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi cập nhật thông tin học sinh",
+        error: error.message,
+      });
+    }
+  },
 
-      if (studentRecord && studentRecord.isAbsent) {
-        absentLessons++;
+  async deleteStudent(req, res) {
+    try {
+      await studentService.delete(req.params.studentId);
+      return res.status(200).json({
+        msg: "Xóa học sinh thành công",
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi xóa học sinh",
+        error: error.message,
+      });
+    }
+  },
+
+  async getAllStudents(req, res) {
+    try {
+      const { page, limit, sort } = req.query;
+      const options = {
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 10,
+        sort: sort ? JSON.parse(sort) : { createdAt: -1 },
+      };
+
+      const result = await studentService.getAll({}, options);
+      return res.status(200).json({
+        msg: "Lấy danh sách học sinh thành công",
+        data: result.students,
+        pagination: result.pagination,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi lấy danh sách học sinh",
+        error: error.message,
+      });
+    }
+  },
+
+  // API mới: Lấy danh sách lớp có thể tham gia
+  async getAvailableClasses(req, res) {
+    try {
+      const { studentId } = req.params;
+      const { year, grade } = req.query;
+
+      const availableClasses =
+        await studentService.getAvailableClassesForStudent(studentId, {
+          year,
+          grade,
+        });
+
+      return res.status(200).json({
+        msg: "Lấy danh sách lớp có thể tham gia thành công",
+        data: availableClasses,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi lấy danh sách lớp có thể tham gia",
+        error: error.message,
+      });
+    }
+  },
+
+  // API chuyên biệt: Đăng ký học sinh vào lớp học với payment
+  async enrollToClasses(req, res) {
+    try {
+      const { studentId } = req.params;
+      const { classesWithDiscount } = req.body;
+
+      if (!classesWithDiscount || !Array.isArray(classesWithDiscount)) {
+        return res.status(400).json({
+          msg: "Thiếu thông tin classesWithDiscount hoặc định dạng không đúng",
+        });
       }
 
-      return {
-        date: record.date,
-        lessonNumber: record.lessonNumber,
-        isAbsent: studentRecord ? studentRecord.isAbsent : false,
-      };
-    });
+      const result = await studentService.enrollToClassesWithPayments(
+        studentId,
+        classesWithDiscount
+      );
 
-    return res.status(200).json({
-      msg: "Lấy thông tin điểm danh thành công",
-      data: {
-        totalLessons,
-        absentLessons,
-        attendedLessons: totalLessons - absentLessons,
-        details: studentAttendance,
-      },
-    });
-  } catch (error) {
-    return res.status(500).json({
-      msg: "Lỗi khi lấy thông tin điểm danh",
-      error: error.message,
-    });
-  }
+      return res.status(200).json({
+        msg: "Đăng ký lớp học cho học sinh thành công",
+        data: result,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi đăng ký lớp học cho học sinh",
+        error: error.message,
+      });
+    }
+  },
+
+  // API chuyên biệt: Loại học sinh khỏi lớp học
+  async withdrawFromClasses(req, res) {
+    try {
+      const { studentId } = req.params;
+      const { classIds } = req.body;
+
+      if (!classIds || !Array.isArray(classIds)) {
+        return res.status(400).json({
+          msg: "Thiếu thông tin classIds hoặc định dạng không đúng",
+        });
+      }
+
+      const result = await studentService.withdrawFromClasses(
+        studentId,
+        classIds
+      );
+
+      return res.status(200).json({
+        msg: "Loại học sinh khỏi lớp học thành công",
+        data: result,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi loại học sinh khỏi lớp học",
+        error: error.message,
+      });
+    }
+  },
 };
 
-module.exports = {
-  getStudentClasses,
-  getStudentAttendance,
-};
+module.exports = studentController;

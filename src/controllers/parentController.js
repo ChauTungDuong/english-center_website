@@ -1,59 +1,292 @@
-const getParentChildren = async (req, res) => {
-  try {
-    const parentId = req.params.id;
-    const children = await Student.find({ parentId }).populate(
-      "userId",
-      "name email"
-    );
+const { Student, Parent, Payment } = require("../models");
 
-    return res.status(200).json({
-      msg: "Lấy danh sách con thành công",
-      data: children,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      msg: "Lỗi khi lấy danh sách con",
-      error: error.message,
-    });
-  }
-};
+const parentService = require("../services/role_services/parentService");
+const parentPaymentRequestService = require("../services/role_services/parentPaymentRequestService");
 
-const getChildPayments = async (req, res) => {
-  try {
-    const { studentId } = req.params;
-    const { month, year } = req.query;
-
-    const filter = { studentId };
-    if (month) filter.month = parseInt(month);
-    if (year) filter.year = parseInt(year);
-
-    const payments = await Payment.find(filter)
-      .populate("classId", "className")
-      .sort({ year: -1, month: -1 });
-
-    // Tính tổng học phí chưa đóng
-    let totalDue = 0;
-    for (const payment of payments) {
-      const due = payment.amountDue - payment.amountPaid;
-      if (due > 0) totalDue += due;
+const parentController = {
+  async createNewParent(req, res) {
+    try {
+      const parent = await parentService.create(req.body);
+      return res.status(201).json({
+        msg: "Tạo phụ huynh thành công",
+        data: parent,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi tạo phụ huynh",
+        error: error.message,
+      });
     }
+  },
+  async getParentInfo(req, res) {
+    try {
+      const parent = await parentService.getById(req.params.parentId);
+      return res.status(200).json({
+        msg: "Lấy thông tin phụ huynh thành công",
+        data: parent,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi lấy thông tin phụ huynh",
+        error: error.message,
+      });
+    }
+  },
+  async updateParent(req, res) {
+    try {
+      const updatedParent = await parentService.update(
+        req.params.parentId,
+        req.body
+      );
+      return res.status(200).json({
+        msg: "Cập nhật thông tin phụ huynh thành công",
+        data: updatedParent,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi cập nhật thông tin phụ huynh",
+        error: error.message,
+      });
+    }
+  },
+  async deleteParent(req, res) {
+    try {
+      await parentService.delete(req.params.parentId);
+      return res.status(200).json({
+        msg: "Xóa phụ huynh thành công",
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi xóa phụ huynh",
+        error: error.message,
+      });
+    }
+  },
 
-    return res.status(200).json({
-      msg: "Lấy thông tin học phí thành công",
-      data: {
-        payments,
-        totalDue,
-      },
+  async getAllParents(req, res) {
+    try {
+      const { page, limit, sort } = req.query;
+      const options = {
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 10,
+        sort: sort ? JSON.parse(sort) : { createdAt: -1 },
+      };
+
+      const result = await parentService.getAll({}, options);
+      return res.status(200).json({
+        msg: "Lấy danh sách phụ huynh thành công",
+        data: result.parents,
+        pagination: result.pagination,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi lấy danh sách phụ huynh",
+        error: error.message,
+      });
+    }
+  },
+  async getAllChild(req, res) {
+    // ❌ API này đã được thay thế bằng getChildrenWithDetails
+    return res.status(410).json({
+      msg: "API này đã bị loại bỏ. Vui lòng sử dụng GET /parents/:parentId/children-details",
     });
-  } catch (error) {
-    return res.status(500).json({
-      msg: "Lỗi khi lấy thông tin học phí",
-      error: error.message,
-    });
-  }
+  },
+  // API mới: Quản lý quan hệ Parent-Student (thay thế link/unlink)
+  async updateParentChildren(req, res) {
+    try {
+      const { parentId } = req.params;
+      const { action, studentId, studentIds } = req.body;
+
+      if (!parentId) {
+        return res.status(400).json({
+          msg: "Thiếu thông tin: parentId",
+        });
+      }
+      // Validation action
+      if (!action || !["add", "remove"].includes(action)) {
+        return res.status(400).json({
+          msg: "Action phải là 'add' hoặc 'remove'",
+        });
+      } // 🔥 Support cả single và multiple students
+      let studentsToProcess = [];
+
+      if (studentId && studentIds) {
+        return res.status(400).json({
+          msg: "Chỉ được sử dụng một trong hai: studentId hoặc studentIds",
+        });
+      }
+
+      if (studentId) {
+        // Handle both string and array for studentId
+        if (Array.isArray(studentId)) {
+          studentsToProcess = studentId;
+        } else {
+          studentsToProcess = [studentId];
+        }
+      } else if (studentIds && Array.isArray(studentIds)) {
+        if (studentIds.length === 0) {
+          return res.status(400).json({
+            msg: "studentIds không được rỗng",
+          });
+        }
+        studentsToProcess = studentIds;
+      } else {
+        return res.status(400).json({
+          msg: "Thiếu thông tin: studentId hoặc studentIds",
+        });
+      }
+
+      // Process multiple students
+      const result = await parentService.updateChildRelationshipBulk(
+        parentId,
+        action,
+        studentsToProcess
+      );
+
+      const successMsg =
+        studentsToProcess.length === 1
+          ? `${
+              action === "add" ? "Thêm" : "Xóa"
+            } quan hệ parent-student thành công`
+          : `${action === "add" ? "Thêm" : "Xóa"} ${result.summary.success}/${
+              studentsToProcess.length
+            } quan hệ parent-student thành công`;
+
+      return res.status(200).json({
+        msg: successMsg,
+        data: result,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi cập nhật quan hệ parent-student",
+        error: error.message,
+      });
+    }
+  },
+
+  // API mới: Lấy thông tin chi tiết các con kể cả điểm danh
+  async getChildrenWithDetails(req, res) {
+    try {
+      const { parentId } = req.params;
+      const children = await parentService.getChildrenWithDetails(parentId);
+      return res.status(200).json({
+        msg: "Lấy thông tin chi tiết các con thành công",
+        data: children,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi lấy thông tin chi tiết các con",
+        error: error.message,
+      });
+    }
+  },
+
+  // API mới: Lấy thông tin học phí chưa đóng của các con
+  async getChildrenUnpaidPayments(req, res) {
+    try {
+      const { parentId } = req.params;
+      const { month, year } = req.query;
+
+      const result = await parentService.getChildrenUnpaidPayments(parentId, {
+        month,
+        year,
+      });
+
+      return res.status(200).json({
+        msg: "Lấy thông tin học phí chưa đóng thành công",
+        data: result,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi lấy thông tin học phí chưa đóng",
+        error: error.message,
+      });
+    }
+  },
+
+  // API mới: Tạo yêu cầu thanh toán
+  async createPaymentRequest(req, res) {
+    try {
+      const { parentId } = req.params;
+      const requestData = { ...req.body, parentId };
+
+      const paymentRequest =
+        await parentPaymentRequestService.createPaymentRequest(requestData);
+
+      return res.status(201).json({
+        msg: "Tạo yêu cầu thanh toán thành công",
+        data: paymentRequest,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi tạo yêu cầu thanh toán",
+        error: error.message,
+      });
+    }
+  },
+
+  // API mới: Lấy danh sách yêu cầu thanh toán của phụ huynh
+  async getPaymentRequests(req, res) {
+    try {
+      const { parentId } = req.params;
+      const { status, page, limit } = req.query;
+
+      const result = await parentPaymentRequestService.getParentPaymentRequests(
+        parentId,
+        {
+          status,
+          page: page ? parseInt(page) : 1,
+          limit: limit ? parseInt(limit) : 10,
+        }
+      );
+
+      return res.status(200).json({
+        msg: "Lấy danh sách yêu cầu thanh toán thành công",
+        data: result.requests,
+        pagination: result.pagination,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi lấy danh sách yêu cầu thanh toán",
+        error: error.message,
+      });
+    }
+  },
+
+  async getChildPayments(req, res) {
+    try {
+      const { studentId } = req.params;
+      const { month, year } = req.query;
+
+      const filter = { studentId };
+      if (month) filter.month = parseInt(month);
+      if (year) filter.year = parseInt(year);
+
+      const payments = await Payment.find(filter)
+        .populate("classId", "className")
+        .sort({ year: -1, month: -1 });
+
+      // Tính tổng học phí chưa đóng
+      let totalDue = 0;
+      for (const payment of payments) {
+        const due = payment.amountDue - payment.amountPaid;
+        if (due > 0) totalDue += due;
+      }
+
+      return res.status(200).json({
+        msg: "Lấy thông tin học phí thành công",
+        data: {
+          payments,
+          totalDue,
+        },
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi lấy thông tin học phí",
+        error: error.message,
+      });
+    }
+  },
 };
 
-module.exports = {
-  getParentChildren,
-  getChildPayments,
-};
+module.exports = parentController;

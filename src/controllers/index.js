@@ -7,27 +7,11 @@ const {
   getProfile,
 } = require("./userController");
 const { login } = require("./authController");
-const {
-  createNewClass,
-  getAllClasses,
-  getClassDetails,
-  updateClass,
-  deleteClass,
-  getClassSchedule,
-} = require("./classController");
-
-const { getTeacherClasses } = require("./teacherController");
-const {
-  createNewAttendance,
-  getAttendanceList,
-  getAttendanceByLessonNumber,
-  takingAttendance,
-} = require("./attendanceController");
-
-const {
-  getStudentAttendance,
-  getStudentClasses,
-} = require("./studentController");
+const classController = require("./classController");
+const attendanceController = require("./attendanceController");
+const teacherController = require("./teacherController");
+const studentController = require("./studentController");
+const parentController = require("./parentController");
 
 const { getParentChildren, getChildPayments } = require("./parentController");
 
@@ -48,37 +32,38 @@ const {
   getFinancialStatistics,
   getStudentStatistics,
 } = require("./statisticController");
+const {
+  linkStudentToParent,
+  unlinkStudentFromParent,
+} = require("./parentStudentController");
 
 module.exports = {
+  // Legacy user and auth exports
   createNewUser,
   login,
-  createNewClass,
-  getAllClasses,
   getUserList,
   deleteUser,
   updateUser,
   getUserInfo,
   getProfile,
-  getClassDetails,
-  updateClass,
-  deleteClass,
-  getClassSchedule,
-  getTeacherClasses,
-  createNewAttendance,
-  getAttendanceList,
-  getAttendanceByLessonNumber,
-  takingAttendance,
-  getStudentAttendance,
-  getStudentClasses,
-  getParentChildren,
-  getChildPayments,
+
+  // Legacy payment, announcement, statistics exports
   generateMonthlyPayment,
   recordPayment,
+  calculateTeacherWage,
+  getPaymentOverview,
+  getTeacherWages,
   createAnnouncement,
   getActiveAnnouncements,
   getFinancialStatistics,
   getStudentStatistics,
-  calculateTeacherWage,
-  getPaymentOverview,
-  getTeacherWages,
+  linkStudentToParent,
+  unlinkStudentFromParent,
+
+  // Export controllers directly
+  classController,
+  attendanceController,
+  teacherController,
+  studentController,
+  parentController,
 };

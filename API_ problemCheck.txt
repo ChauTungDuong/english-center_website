@@ -1,0 +1,64 @@
+- Những điều cần triển khai ở các API : 
+ Các API đã có : 
+  + POST /v1/api/login : Truyền vào email, password, trả về token của user tương ứng.
+  + GET /v1/api/profile : Nhận token, trả về thông tin người dùng (đã fix, sẽ trả về thêm roleId và roleData tương ứng.
+  Ví dụ : Nếu người dùng có role Student thì trả về studentId và data tương ứng).
+
+// Các API cho học sinh (Student):
+  + POST /v1/api/students : Truyền vào các thông số cơ bản có ở một người dùng : 
+  {email, password, name, gender, phoneNumber, address} và các thông số ở student : {classId, parentId}.
+  Trả về thông điệp tạo thành công và dữ liệu của học sinh được tạo. (Quyền : Admin)
+
+  + GET /v1/api/students/:studentId : Nhận vào studentId, trả về thông tin chi tiết của học sinh gồm các thông tin người dùng (qua userId),
+  thông tin lớp học (qua classId), thông tin phụ huynh (qua parentId) . Cái này dành cho admin để xem thông tin học sinh (Quyền : Admin)
+
+// Các API cho phụ huynh (Parent):
+  + POST /v1/api/parents : Tương tự như học sinh, truyền vào các thông số cơ bản của người dùng và thông tin phụ huynh(gồm childId và canSeeTeacher).
+  Trả về thông điệp tạo thành công và dữ liệu của phụ huynh được tạo. (Quyền : Admin)
+
+  + GET /v1/api/parents/:parentId : Nhận vào parentId, trả về thông tin chi tiết của phụ huynh gồm các thông tin người dùng, danh sách các con của phụ huynh đó.
+  Cái này dành cho admin để xem thông tin phụ huynh (Quyền : Admin).
+
+  + PATCH /v1/api/parents/:parentId : Nhận vào các thông tin cần cập nhật của phụ huynh, gồm các thông tin người dùng cơ bản và thông tin riêng (chỉ gửi các trường
+  cần cập nhật). Trả về thông điệp cập nhật thành công và dữ liệu của phụ huynh được cập nhật. (Quyền : Admin)
+
+  + DELETE /v1/api/parents/:parentId : Nhận vào parentId, xóa phụ huynh tương ứng. Trả về thông điệp xóa thành công. (Quyền : Admin)
+
+  
+
+
+// Các API cho giáo viên (Teacher):
+todo 18/6 : 
+ + viết đầy đủ các service cho từng người dùng, class và attendance, payment
+ + viết các API cho từng người dùng, class và attendance, payment (crud + chức năng theo mô tả của đề bài)
+
+- Còn thiếu các API sau cho phụ huynh : 
+  + GET /v1/api/parents/:parentId/children : Nhận vào parentId, trả về danh sách con cái (gồm childId) và thông tin lớp học cơ bản (gồm classId) của con cái cho phụ huynh đó. (Quyền : Parent, Admin)
+  + GET /v1/api/parents/:parentId/children/:childId/classes/:classId : Nhận vào parentId, childId và classId, trả về thông tin chi tiết các buổi học, lịch học và các buổi vắng của học sinh (Quyền : Parent, Admin)
+  + GET /v1/api/parents/:parentId/payments : Nhận vào parentId, trả về danh sách các khoản thanh toán của phụ huynh đó , có thể lọc theo con cái (childId), theo tháng, năm (Quyền : Parent, Admin)
+  + POST /v1/api/parents/:parentId/payments : Nhận vào parentId và các thông tin thanh toán, tạo mới một khoản thanh toán cho phụ huynh đó (Quyền : Parent, Admin)
+
+
+  // Basic CRUD
+POST   /v1/api/classes/                     // Tạo lớp học
+GET    /v1/api/classes/                     // Danh sách lớp học (với filter)
+GET    /v1/api/classes/:classId             // Chi tiết lớp học
+PATCH  /v1/api/classes/:classId             // Cập nhật lớp học
+DELETE /v1/api/classes/:classId             // Xóa lớp học (soft/hard)
+
+// Student management
+POST   /v1/api/classes/:classId/students/:studentId   // Thêm học sinh vào lớp
+DELETE /v1/api/classes/:classId/students/:studentId   // Xóa học sinh khỏi lớp
+
+
+// Basic CRUD
+POST   /v1/api/attendance/                  // Tạo buổi điểm danh
+GET    /v1/api/attendance/                  // Danh sách điểm danh (với filter)
+GET    /v1/api/attendance/:attendanceId     // Chi tiết điểm danh
+PATCH  /v1/api/attendance/:attendanceId     // Cập nhật điểm danh
+DELETE /v1/api/attendance/:attendanceId     // Xóa điểm danh
+
+// Class-specific
+GET    /v1/api/attendance/class/:classId               // Điểm danh theo lớp
+GET    /v1/api/attendance/class/:classId/stats         // Thống kê điểm danh lớp
+PATCH  /v1/api/attendance/:attendanceId/students/:studentId  // Cập nhật điểm danh học sinh
