@@ -9,8 +9,6 @@ const {
 } = require("../../models");
 const { parentUpdateFields, userUpdateFields } = require("./updateFields");
 const userService = require("./userService");
-const { getById } = require("./studentService");
-const studentService = require("./studentService");
 
 const parentService = {
   async create(parentData) {
@@ -22,23 +20,27 @@ const parentService = {
         const user = await userService.create(userFields, "Parent", session);
         if (user.role !== "Parent") {
           throw new Error("Vai trò không hợp lệ");
+        } // Xử lý childId array để đảm bảo luôn là array (có thể rỗng)
+        let childIds = [];
+        if (parentData.childId) {
+          childIds = Array.isArray(parentData.childId)
+            ? parentData.childId
+            : [parentData.childId];
         }
+
         const parent = await Parent.create(
           [
             {
               userId: user._id,
-              childId: parentFields.childId || null,
+              childId: childIds, // Luôn là array, có thể rỗng
               canSeeTeacher: parentFields.canSeeTeacher || false,
             },
           ],
           { session }
         );
 
-        if (parentData.childId) {
-          const childIds = Array.isArray(parentData.childId)
-            ? parentData.childId
-            : [parentData.childId];
-
+        // Chỉ validate và update students nếu có childIds
+        if (childIds.length > 0) {
           // Validate children exist
           const validChildren = await Student.find({
             _id: { $in: childIds },
@@ -154,17 +156,22 @@ const parentService = {
       const parent = await Parent.findById(parentId)
         .populate({
           path: "userId",
-          select: "name email gender phoneNumber address role",
+          select: "name email gender phoneNumber address role isActive",
         })
         .populate({
           path: "childId",
           populate: {
             path: "userId",
-            select: "name email gender",
+            select: "name email gender isActive",
           },
         });
       if (!parent) {
         throw new Error("Không tìm thấy phụ huynh");
+      }
+
+      // Kiểm tra user có active không
+      if (!parent.userId || !parent.userId.isActive) {
+        throw new Error("Phụ huynh đã bị vô hiệu hóa");
       }
       return parent;
     } catch (error) {
@@ -195,18 +202,22 @@ const parentService = {
       );
     }
   },
-
   /**
    * Lấy thông tin chi tiết các con kể cả điểm danh và lớp học
    * @param {String} parentId - ID của phụ huynh
-   * @returns {Array} Danh sách các con với thông tin chi tiết
-   */
-  async getChildrenWithDetails(parentId) {
+   * @returns {Array} Danh sách các con với thông tin chi tiết bao gồm:
+   *   - Thông tin cá nhân của con
+   *   - Danh sách lớp học với thông tin giáo viên (tùy thuộc vào cấu hình canSeeTeacher)
+   *   - Chi tiết điểm danh: tổng số buổi, buổi nghỉ, buổi có mặt
+   *   - Danh sách ngày nghỉ cụ thể (absentDates)
+   *   - Chi tiết từng buổi học (attendanceDetails)
+   *   - Thống kê tổng hợp (attendanceSummary)
+   * @note Thông tin giáo viên chỉ được hiển thị nếu parent.canSeeTeacher = true
+   */ async getChildrenWithDetails(parentId) {
     try {
       if (!parentId) {
         throw new Error("Thiếu thông tin bắt buộc: parentId");
       }
-
       const parent = await Parent.findById(parentId).populate({
         path: "childId",
         populate: [
@@ -216,14 +227,24 @@ const parentService = {
           },
           {
             path: "classId",
-            select: "className grade year startDate endDate feePerLesson",
+            select:
+              "className grade year startDate endDate feePerLesson teacherId",
+            populate: {
+              path: "teacherId",
+              populate: {
+                path: "userId",
+                select: "name email phoneNumber",
+              },
+            },
           },
         ],
       });
-
       if (!parent) {
         throw new Error("Không tìm thấy phụ huynh");
       }
+
+      // Kiểm tra quyền xem thông tin giáo viên
+      const canSeeTeacher = parent.canSeeTeacher || false;
 
       const childrenWithDetails = [];
 
@@ -239,9 +260,7 @@ const parentService = {
           totalLessons: 0,
           totalAbsent: 0,
           totalAttended: 0,
-        };
-
-        // Lấy thông tin điểm danh cho từng lớp
+        }; // Lấy thông tin điểm danh cho từng lớp
         for (const classInfo of child.classId || []) {
           const attendance = await Attendance.findOne({
             classId: classInfo._id,
@@ -250,6 +269,8 @@ const parentService = {
           let classLessons = 0;
           let classAbsent = 0;
           let classAttended = 0;
+          let absentDates = []; // Danh sách ngày nghỉ cụ thể
+          let attendanceDetails = []; // Chi tiết từng buổi học
 
           if (attendance && attendance.records) {
             attendance.records.forEach((record) => {
@@ -259,35 +280,64 @@ const parentService = {
 
               if (studentRecord) {
                 classLessons++;
+                const attendanceRecord = {
+                  date: record.date,
+                  isPresent: !studentRecord.isAbsent,
+                  lessonNumber: record.lessonNumber || classLessons,
+                };
+
                 if (studentRecord.isAbsent) {
                   classAbsent++;
+                  absentDates.push({
+                    date: record.date,
+                    lessonNumber: record.lessonNumber || classLessons,
+                  });
                 } else {
                   classAttended++;
                 }
+
+                attendanceDetails.push(attendanceRecord);
               }
             });
+          } // Thông tin giáo viên - chỉ hiển thị nếu được phép
+          let teacherInfo = null;
+          if (canSeeTeacher && classInfo.teacherId) {
+            teacherInfo = {
+              _id: classInfo.teacherId._id,
+              name: classInfo.teacherId.userId?.name || "Unknown",
+              email: classInfo.teacherId.userId?.email || "",
+              phone: classInfo.teacherId.userId?.phoneNumber || "",
+            };
+          } else if (!canSeeTeacher) {
+            // Thông báo rằng phụ huynh không được phép xem thông tin giáo viên
+            teacherInfo = {
+              message: "Bạn chưa được cấp quyền xem thông tin giáo viên",
+            };
           }
-
           childDetail.classes.push({
             _id: classInfo._id,
             className: classInfo.className,
             grade: classInfo.grade,
             year: classInfo.year,
             feePerLesson: classInfo.feePerLesson,
-            totalLessons: classLessons,
-            absentLessons: classAbsent,
-            attendedLessons: classAttended,
-            attendanceRate:
-              classLessons > 0
-                ? ((classAttended / classLessons) * 100).toFixed(1)
-                : 0,
+            teacher: teacherInfo, // Thông tin giáo viên
+            attendance: {
+              totalLessons: classLessons,
+              absentLessons: classAbsent,
+              attendedLessons: classAttended,
+              attendanceRate:
+                classLessons > 0
+                  ? ((classAttended / classLessons) * 100).toFixed(1)
+                  : 0,
+              absentDates: absentDates, // Danh sách ngày nghỉ cụ thể
+              attendanceDetails: attendanceDetails, // Chi tiết từng buổi học
+            },
           });
 
           childDetail.totalLessons += classLessons;
           childDetail.totalAbsent += classAbsent;
           childDetail.totalAttended += classAttended;
         }
-
         childDetail.overallAttendanceRate =
           childDetail.totalLessons > 0
             ? (
@@ -295,6 +345,15 @@ const parentService = {
                 100
               ).toFixed(1)
             : 0;
+
+        // Thêm thông tin tổng hợp
+        childDetail.attendanceSummary = {
+          totalLessons: childDetail.totalLessons,
+          totalAbsent: childDetail.totalAbsent,
+          totalAttended: childDetail.totalAttended,
+          overallAttendanceRate: childDetail.overallAttendanceRate,
+          totalClasses: childDetail.classes.length,
+        };
 
         childrenWithDetails.push(childDetail);
       }
@@ -473,42 +532,53 @@ const parentService = {
    */
   async getAll(filter = {}, options = {}) {
     try {
-      const {
-        page = 1,
-        limit = 10,
-        sort = { createdAt: -1 },
-        populate = true,
-      } = options;
+      const { page = 1, limit = 10, sort, populate = true, isActive } = options;
 
       const skip = (page - 1) * limit;
 
       let query = Parent.find(filter).skip(skip).limit(limit).sort(sort);
 
       if (populate) {
+        // Tạo match condition cho isActive
+        let userMatch = {};
+        if (isActive !== undefined) {
+          userMatch.isActive = isActive;
+        }
+
         query = query
           .populate({
             path: "userId",
-            select: "name email gender phoneNumber address role",
+            select: "name email gender phoneNumber address role isActive",
+            match: userMatch,
           })
           .populate({
             path: "childId",
             select: "userId",
             populate: {
               path: "userId",
-              select: "name email",
+              select: "name email isActive",
+              match: userMatch,
             },
           });
       }
 
       const parents = await query;
+
+      // Lọc bỏ parents có userId null (do user không match với isActive filter)
+      const filteredParents = parents.filter(
+        (parent) => parent.userId !== null
+      );
+
+      // Note: Total count là tổng số Parent records, không tính filter isActive của User
+      // Vì thế currentPage có thể có ít items hơn limit nếu có filter isActive
       const total = await Parent.countDocuments(filter);
 
       return {
-        parents,
+        parents: filteredParents,
         pagination: {
           current: page,
           total: Math.ceil(total / limit),
-          count: parents.length,
+          count: filteredParents.length,
           totalRecords: total,
         },
       };
@@ -778,6 +848,35 @@ const parentService = {
         throw new Error(`Lỗi khi xử lý bulk update: ${error.message}`);
       }
     });
+  },
+
+  // Soft delete parent
+  async softDelete(parentId) {
+    try {
+      if (!parentId) {
+        throw new Error("Thiếu thông tin bắt buộc: parentId");
+      }
+
+      const parent = await Parent.findById(parentId).populate("userId");
+      if (!parent) {
+        throw new Error("Không tìm thấy parent");
+      }
+
+      // Vô hiệu hóa user tương ứng
+      const updatedUser = await userService.update(parent.userId._id, {
+        isActive: false,
+      });
+
+      return {
+        id: parent._id,
+        userId: parent.userId._id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        isActive: updatedUser.isActive, // Lấy từ database thực tế
+      };
+    } catch (error) {
+      throw new Error(`Lỗi khi soft delete parent: ${error.message}`);
+    }
   },
 };
 

@@ -3,7 +3,7 @@ const router = express.Router();
 const attendanceController = require("../controllers/attendanceController");
 const { verifyRole } = require("../middleware/authMiddleware");
 
-// === 3 API chính cho Attendance Management ===
+// === 4 API chính cho Attendance Management ===
 
 // 1. Tạo buổi điểm danh mới cho lớp (Admin và Teacher)
 router.post(
@@ -18,8 +18,7 @@ router.patch(
   verifyRole(["Admin", "Teacher"]),
   attendanceController.markAttendance
 );
-
-// 3. Xóa điểm danh khi cần (chỉ Admin)
+// 3. Xóa buổi điểm danh (chỉ Admin)
 router.delete(
   "/:attendanceId",
   verifyRole(["Admin"]),

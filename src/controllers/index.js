@@ -12,26 +12,10 @@ const attendanceController = require("./attendanceController");
 const teacherController = require("./teacherController");
 const studentController = require("./studentController");
 const parentController = require("./parentController");
+const announcementController = require("./announcementController");
+const teacherWageController = require("./teacherWageController");
 
 const { getParentChildren, getChildPayments } = require("./parentController");
-
-const {
-  generateMonthlyPayment,
-  recordPayment,
-  calculateTeacherWage,
-  getPaymentOverview,
-  getTeacherWages,
-} = require("./paymentController");
-
-const {
-  createAnnouncement,
-  getActiveAnnouncements,
-} = require("./announcementController");
-
-const {
-  getFinancialStatistics,
-  getStudentStatistics,
-} = require("./statisticController");
 const {
   linkStudentToParent,
   unlinkStudentFromParent,
@@ -47,16 +31,7 @@ module.exports = {
   getUserInfo,
   getProfile,
 
-  // Legacy payment, announcement, statistics exports
-  generateMonthlyPayment,
-  recordPayment,
-  calculateTeacherWage,
-  getPaymentOverview,
-  getTeacherWages,
-  createAnnouncement,
-  getActiveAnnouncements,
-  getFinancialStatistics,
-  getStudentStatistics,
+  // Legacy function exports for backward compatibility
   linkStudentToParent,
   unlinkStudentFromParent,
 
@@ -66,4 +41,6 @@ module.exports = {
   teacherController,
   studentController,
   parentController,
+  announcementController,
+  teacherWageController,
 };

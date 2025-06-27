@@ -7,8 +7,9 @@ const studentRouter = require("./studentRoutes");
 const parentRouter = require("./parentRoutes");
 const paymentRouter = require("./paymentRoutes");
 const announcementRouter = require("./announcementRoutes");
-const statisticsRouter = require("./statisticsRoutes");
-
+const teacherWageRouter = require("./teacherWageRoutes");
+const statisticRouter = require("./statisticsRoutes");
+const parentPaymentRequestRouter = require("./parentPaymentRequestRoutes");
 module.exports = {
   router,
   userRouter,
@@ -19,5 +20,7 @@ module.exports = {
   parentRouter,
   paymentRouter,
   announcementRouter,
-  statisticsRouter,
+  teacherWageRouter,
+  statisticRouter,
+  parentPaymentRequestRouter,
 };

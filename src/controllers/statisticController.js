@@ -1,92 +1,52 @@
-const { Payment, TeacherWage, Student } = require("../models");
-const getFinancialStatistics = async (req, res) => {
-  try {
-    const { month, year } = req.query;
+const statisticService = require("../services/role_services/statisticService");
 
-    // Thống kê học phí đã thu
-    const paymentFilter = {};
-    if (month) paymentFilter.month = parseInt(month);
-    if (year) paymentFilter.year = parseInt(year);
+const statisticController = {
+  /**
+   * API thống kê tổng hợp duy nhất
+   * GET /v1/api/unified-statistics
+   *
+   * Query parameters (tự động phát hiện loại thống kê):
+   * - month + year: thống kê theo tháng cụ thể
+   * - chỉ year: thống kê theo năm
+   * - startDate + endDate: thống kê theo khoảng thời gian tùy chỉnh
+   * - không tham số: thống kê tháng hiện tại
+   * - classId: lọc theo lớp học cụ thể
+   * - teacherId: lọc theo giáo viên cụ thể
+   */
+  async getAllStatistics(req, res) {
+    try {
+      const { month, year, startDate, endDate, classId, teacherId } = req.query;
 
-    const payments = await Payment.find(paymentFilter);
+      // Validate cho custom period
+      if ((startDate && !endDate) || (!startDate && endDate)) {
+        return res.status(400).json({
+          success: false,
+          message: "Both startDate and endDate are required for custom period",
+        });
+      }
 
-    let totalReceived = 0;
-    let totalExpected = 0;
-
-    payments.forEach((payment) => {
-      totalReceived += payment.amountPaid;
-      totalExpected += payment.amountDue;
-    });
-
-    // Thống kê lương đã trả
-    const wageFilter = {};
-    if (month) wageFilter.month = parseInt(month);
-    if (year) wageFilter.year = parseInt(year);
-
-    const wages = await TeacherWage.find(wageFilter);
-    let totalWage = 0;
-
-    wages.forEach((wage) => {
-      totalWage += wage.amount;
-    });
-
-    return res.status(200).json({
-      msg: "Lấy thống kê tài chính thành công",
-      data: {
-        income: {
-          expected: totalExpected,
-          received: totalReceived,
-          pending: totalExpected - totalReceived,
-        },
-        expense: {
-          wage: totalWage,
-        },
-        profit: totalReceived - totalWage,
-      },
-    });
-  } catch (error) {
-    return res.status(500).json({
-      msg: "Lỗi khi lấy thống kê tài chính",
-      error: error.message,
-    });
-  }
-};
-
-const getStudentStatistics = async (req, res) => {
-  try {
-    const { year } = req.query;
-
-    // Thống kê số lượng học sinh theo từng tháng
-    const stats = [];
-
-    for (let month = 1; month <= 12; month++) {
-      const studentCount = await Student.countDocuments({
-        createdAt: {
-          $gte: new Date(`${year}-${month}-01`),
-          $lt: new Date(`${year}-${month + 1 > 12 ? 1 : month + 1}-01`),
-        },
+      const statistics = await statisticService.getAllStatistics({
+        month: month ? parseInt(month) : undefined,
+        year: year ? parseInt(year) : undefined,
+        startDate,
+        endDate,
+        classId,
+        teacherId,
       });
 
-      stats.push({
-        month,
-        year: parseInt(year),
-        studentCount,
+      return res.status(200).json({
+        success: true,
+        message: "Lấy thống kê tổng hợp thành công",
+        data: statistics,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Lỗi khi lấy thống kê tổng hợp",
+        error: error.message,
       });
     }
-
-    return res.status(200).json({
-      msg: "Lấy thống kê học sinh thành công",
-      data: stats,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      msg: "Lỗi khi lấy thống kê học sinh",
-      error: error.message,
-    });
-  }
+  },
 };
 
-module.exports = {
-  getFinancialStatistics,
-  getStudentStatistics,
-};
+module.exports = statisticController;

@@ -24,18 +24,4 @@ router.patch(
   parentPaymentRequestController.processPaymentRequest
 );
 
-// Phê duyệt yêu cầu thanh toán (chỉ Admin)
-router.patch(
-  "/:requestId/approve",
-  verifyRole(["Admin"]),
-  parentPaymentRequestController.approvePaymentRequest
-);
-
-// Từ chối yêu cầu thanh toán (chỉ Admin)
-router.patch(
-  "/:requestId/reject",
-  verifyRole(["Admin"]),
-  parentPaymentRequestController.rejectPaymentRequest
-);
-
 module.exports = router;

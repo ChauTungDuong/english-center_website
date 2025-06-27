@@ -11,8 +11,10 @@ const attendanceService = {
   /**
    * Tạo buổi điểm danh mới (chỉ tạo record, chưa update Payment/TeacherWage)
    * @param {Object} attendanceData - Dữ liệu điểm danh
-   * @returns {Object} Attendance đã được tạo   * @note Payment và TeacherWage sẽ được update khi gọi markClassAttendance()
-   */ async create(attendanceData) {
+   * @returns {Object} Attendance đã được tạo
+   * @note Payment và TeacherWage sẽ được update khi gọi markClassAttendance()
+   */
+  async create(attendanceData) {
     return await withTransaction(async (session) => {
       try {
         const { classId, date, lessonNumber } = attendanceData;
@@ -39,7 +41,9 @@ const attendanceService = {
         await this.validateAttendanceDate(
           classData,
           this.parseDateSafely(date)
-        ); // Check if attendance already exists for this date
+        );
+
+        // Check if attendance already exists for this date
         const attendanceDate = this.parseDateSafely(date);
         const startOfDay = new Date(attendanceDate.getTime());
         startOfDay.setHours(0, 0, 0, 0);
@@ -53,6 +57,7 @@ const attendanceService = {
             $lte: endOfDay,
           },
         }).session(session);
+
         if (existingAttendance) {
           throw new Error("Đã có điểm danh cho ngày này");
         }
@@ -67,6 +72,7 @@ const attendanceService = {
             isAbsent: false,
           })),
         };
+
         const attendance = await Attendance.create([attendanceRecord], {
           session,
         });
@@ -115,99 +121,6 @@ const attendanceService = {
       throw new Error(`Lỗi khi lấy thông tin điểm danh: ${error.message}`);
     }
   },
-
-  /**
-   * Cập nhật điểm danh
-   * @deprecated Hàm này đã được thay thế bởi markClassAttendance()
-   * @note Không khuyến khích sử dụng vì duplicate logic với markClassAttendance
-   * @param {String} attendanceId - ID của điểm danh
-   * @param {Object} updateData - Dữ liệu cập nhật
-   * @returns {Object} Điểm danh đã được cập nhật
-   */
-  /*
-  async update(attendanceId, updateData) {
-    return await withTransaction(async (session) => {
-      try {
-        if (!attendanceId || !updateData) {
-          throw new Error(
-            "Thiếu thông tin bắt buộc: attendanceId hoặc updateData"
-          );
-        }
-
-        const attendance = await Attendance.findById(attendanceId).session(
-          session
-        );
-        if (!attendance) {
-          throw new Error("Không tìm thấy điểm danh");
-        } // Filter allowed update fields (only students to prevent data inconsistency)
-        const allowedFields = ["students"]; // Only allow updating students attendance
-        const updateFields = Object.keys(updateData)
-          .filter((key) => allowedFields.includes(key))
-          .reduce((obj, key) => {
-            obj[key] = updateData[key];
-            return obj;
-          }, {});
-
-        // Require students field for update
-        if (!updateFields.students) {
-          throw new Error("Chỉ cho phép cập nhật thông tin điểm danh học sinh");
-        }
-
-        // Validate students array is not empty
-        if (
-          !Array.isArray(updateFields.students) ||
-          updateFields.students.length === 0
-        ) {
-          throw new Error("Danh sách điểm danh học sinh không được rỗng");
-        }
-
-        // If updating students attendance, need to sync Payment records
-        if (updateFields.students) {
-          await this.validateStudentsData(
-            attendance.classId,
-            updateFields.students,
-            session
-          );
-
-          // Get class data for Payment sync
-          const classData = await Class.findById(attendance.classId)
-            .populate("studentList")
-            .session(session);
-
-          // Compare old vs new attendance status and update Payment records
-          for (const newStudentData of updateFields.students) {
-            const oldStudentData = attendance.students.find(
-              (s) => s.studentId.toString() === newStudentData.studentId
-            ); // If attendance status changed, update Payment record
-            if (
-              oldStudentData &&
-              oldStudentData.isAbsent !== newStudentData.isAbsent
-            ) {
-              // updatePaymentRecord already handles status changes internally
-              await this.updatePaymentRecord(
-                newStudentData.studentId,
-                attendance.classId,
-                attendance.date,
-                newStudentData.isAbsent,
-                session
-              );
-            }
-          }
-        }
-
-        const updatedAttendance = await Attendance.findByIdAndUpdate(
-          attendanceId,
-          { $set: updateFields },
-          { new: true, runValidators: true, session }
-        );
-
-        return updatedAttendance;
-      } catch (error) {
-        throw new Error(`Lỗi khi cập nhật điểm danh: ${error.message}`);
-      }
-    });
-  },
-  */
 
   /**
    * Xóa điểm danh
@@ -397,6 +310,7 @@ const attendanceService = {
       throw new Error(`Lỗi khi lấy thống kê điểm danh: ${error.message}`);
     }
   },
+
   /**
    * Cập nhật điểm danh cho học sinh cụ thể
    * @param {String} attendanceId - ID của điểm danh
@@ -463,6 +377,7 @@ const attendanceService = {
       }
     });
   },
+
   /**
    * Validate students data
    * @param {String} classId - ID của lớp học
@@ -492,11 +407,13 @@ const attendanceService = {
       );
     }
   },
+
   /**
    * Validate attendance date matches class schedule
    * @param {Object} classData - Class data
    * @param {Date} attendanceDate - Date of attendance
-   */ async validateAttendanceDate(classData, attendanceDate) {
+   */
+  async validateAttendanceDate(classData, attendanceDate) {
     if (!classData.schedule) {
       return; // Skip validation if no schedule is set
     }
@@ -530,6 +447,7 @@ const attendanceService = {
         );
       }
     }
+
     if (endDate) {
       const classEndDateParsed = this.parseDateSafely(endDate);
       const endDateOnly = new Date(
@@ -547,7 +465,9 @@ const attendanceService = {
           }, Kết thúc: ${endDateOnly.toISOString().split("T")[0]}`
         );
       }
-    } // Check if attendance date matches class schedule days
+    }
+
+    // Check if attendance date matches class schedule days
     if (daysOfLessonInWeek && daysOfLessonInWeek.length > 0) {
       const dayOfWeek = attendanceDate.getUTCDay(); // 0 = Sunday, 1 = Monday, ...
 
@@ -661,17 +581,23 @@ const attendanceService = {
         month,
         year,
       }).session(session);
-
       if (!teacherWage) {
         // Create new wage record if it doesn't exist
         const classData = await Class.findById(classId).session(session);
+        const teacherData = await Teacher.findById(teacherId).session(session);
+
+        const wagePerLesson =
+          teacherData.wagePerLesson || classData.feePerLesson || 0;
+
         teacherWage = new TeacherWage({
           teacherId,
           classId,
           month,
           year,
-          amount: classData.feePerLesson || 0, // Base wage per lesson
+          wagePerLesson,
+          amount: 0, // Will be calculated based on lessonTaught * wagePerLesson
           lessonTaught: 0,
+          isPaid: false,
         });
       }
 
@@ -687,7 +613,9 @@ const attendanceService = {
       );
     }
   },
-  /**   * Thực hiện điểm danh cho lớp học (tạo mới nếu chưa có, cập nhật Payment và TeacherWage)
+
+  /**
+   * Thực hiện điểm danh cho lớp học (tạo mới nếu chưa có, cập nhật Payment và TeacherWage)
    * @param {String} classId - ID của lớp học
    * @param {Date} date - Ngày điểm danh
    * @param {Array} studentsAttendance - Danh sách điểm danh học sinh
@@ -729,7 +657,9 @@ const attendanceService = {
 
         if (!classData.isAvailable) {
           throw new Error("Lớp học không còn hoạt động");
-        } // Validate attendance date matches class schedule
+        }
+
+        // Validate attendance date matches class schedule
         await this.validateAttendanceDate(
           classData,
           this.parseDateSafely(date)
@@ -759,7 +689,9 @@ const attendanceService = {
             lessonNumber,
             students: [],
           });
-        } // Update attendance for each student
+        }
+
+        // Update attendance for each student
         for (const studentAttendance of studentsAttendance) {
           const { studentId, isAbsent = false } = studentAttendance;
 
@@ -779,6 +711,7 @@ const attendanceService = {
             existingStudentIndex >= 0
               ? attendance.students[existingStudentIndex].isAbsent
               : null;
+
           if (existingStudentIndex >= 0) {
             // Update existing student record
             attendance.students[existingStudentIndex].isAbsent = isAbsent;
@@ -788,7 +721,9 @@ const attendanceService = {
               studentId,
               isAbsent,
             });
-          } // Update payment record if attendance status changed or new attendance
+          }
+
+          // Update payment record if attendance status changed or new attendance
           if (isNewAttendance || previousAttendanceStatus !== isAbsent) {
             await this.updatePaymentRecord(
               studentId,
@@ -799,6 +734,7 @@ const attendanceService = {
             );
           }
         }
+
         await attendance.save({ session });
 
         // Update teacher wage record (only for new attendance sessions)
@@ -967,7 +903,8 @@ const attendanceService = {
     }
 
     // If string, try different parsing methods
-    let date; // Try parsing common formats
+    let date;
+    // Try parsing common formats
     if (typeof dateInput === "string") {
       // Format: "2025/08/11" or "2025-08-11"
       if (dateInput.match(/^\d{4}[/-]\d{2}[/-]\d{2}$/)) {

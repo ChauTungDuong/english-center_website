@@ -15,12 +15,19 @@ const studentService = {
         const user = await userService.create(userFields, "Student", session);
         if (user.role !== "Student") {
           throw new Error("Vai trò không hợp lệ");
+        } // Xử lý classId array để đảm bảo luôn là array (có thể rỗng)
+        let classIds = [];
+        if (studentData.classId) {
+          classIds = Array.isArray(studentData.classId)
+            ? studentData.classId
+            : [studentData.classId];
         }
+
         const student = await Student.create(
           [
             {
               userId: user._id,
-              classId: studentFields.classId || null,
+              classId: classIds, // Luôn là array, có thể rỗng
               parentId: studentFields.parentId || null,
             },
           ],
@@ -138,7 +145,7 @@ const studentService = {
       const student = await Student.findById(studentId)
         .populate({
           path: "userId",
-          select: "name email gender phoneNumber address role",
+          select: "name email gender phoneNumber address role isActive",
         })
         .populate({
           path: "classId",
@@ -148,7 +155,7 @@ const studentService = {
             select: "userId wagePerLesson",
             populate: {
               path: "userId",
-              select: "name email phoneNumber",
+              select: "name email phoneNumber isActive",
             },
           },
         })
@@ -157,12 +164,17 @@ const studentService = {
           select: "userId canSeeTeacher",
           populate: {
             path: "userId",
-            select: "name email phoneNumber",
+            select: "name email phoneNumber isActive",
           },
         });
 
       if (!student) {
         throw new Error("Không tìm thấy học sinh");
+      }
+
+      // Kiểm tra user có active không
+      if (!student.userId || !student.userId.isActive) {
+        throw new Error("Học sinh đã bị vô hiệu hóa");
       }
 
       // Lấy thông tin điểm danh nếu học sinh có lớp học
@@ -257,29 +269,32 @@ const studentService = {
    */
   async getAll(filter = {}, options = {}) {
     try {
-      const {
-        page = 1,
-        limit = 10,
-        sort = { createdAt: -1 },
-        populate = true,
-      } = options;
+      const { page = 1, limit = 10, sort, populate = true, isActive } = options;
 
       const skip = (page - 1) * limit;
 
       let query = Student.find(filter).skip(skip).limit(limit).sort(sort);
 
       if (populate) {
+        // Tạo match condition cho isActive
+        let userMatch = {};
+        if (isActive !== undefined) {
+          userMatch.isActive = isActive;
+        }
+
         query = query
           .populate({
             path: "userId",
-            select: "name email gender phoneNumber address role",
+            select: "name email gender phoneNumber address role isActive",
+            match: userMatch,
           })
           .populate({
             path: "parentId",
             select: "userId",
             populate: {
               path: "userId",
-              select: "name email phoneNumber",
+              select: "name email phoneNumber isActive",
+              match: userMatch,
             },
           })
           .populate({
@@ -289,14 +304,22 @@ const studentService = {
       }
 
       const students = await query;
+
+      // Lọc bỏ students có userId null (do user không match với isActive filter)
+      const filteredStudents = students.filter(
+        (student) => student.userId !== null
+      );
+
+      // Note: Total count là tổng số Student records, không tính filter isActive của User
+      // Vì thế currentPage có thể có ít items hơn limit nếu có filter isActive
       const total = await Student.countDocuments(filter);
 
       return {
-        students,
+        students: filteredStudents,
         pagination: {
           current: page,
           total: Math.ceil(total / limit),
-          count: students.length,
+          count: filteredStudents.length,
           totalRecords: total,
         },
       };
@@ -855,7 +878,34 @@ const studentService = {
     }
   },
 
-  // ...existing code...
+  // Soft delete student
+  async softDelete(studentId) {
+    try {
+      if (!studentId) {
+        throw new Error("Thiếu thông tin bắt buộc: studentId");
+      }
+
+      const student = await Student.findById(studentId).populate("userId");
+      if (!student) {
+        throw new Error("Không tìm thấy student");
+      }
+
+      // Vô hiệu hóa user tương ứng
+      const updatedUser = await userService.update(student.userId._id, {
+        isActive: false,
+      });
+
+      return {
+        id: student._id,
+        userId: student.userId._id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        isActive: updatedUser.isActive, // Lấy từ database thực tế
+      };
+    } catch (error) {
+      throw new Error(`Lỗi khi soft delete student: ${error.message}`);
+    }
+  },
 };
 
 module.exports = studentService;

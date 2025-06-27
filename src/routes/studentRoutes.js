@@ -35,6 +35,13 @@ router.delete(
   studentController.deleteStudent
 );
 
+// Soft delete student (chỉ Admin)
+router.delete(
+  "/:studentId/soft",
+  verifyRole(["Admin"]),
+  studentController.softDeleteStudent
+);
+
 // API mới: Lấy danh sách lớp học có thể tham gia
 router.get(
   "/:studentId/available-classes",

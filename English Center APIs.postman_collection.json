@@ -1,0 +1,913 @@
+{
+  "info": {
+    "_postman_id": "50659ef3-ef41-43a3-a4d3-17dcee737ed1",
+    "name": "English Center APIs",
+    "description": "Get All Class : Lấy ra toàn bộ các class có trong database\n\nCreate Class : Tạo mới class\n\nSend Login : Đăng nhập (trả về token)\n\nCreate User : Tạo mới user",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "43709949",
+    "_collection_link": "https://tungduong-6049875.postman.co/workspace/Tung-Duong's-Workspace~56c2050f-955e-4694-8315-28c91ed5ab60/collection/43709949-50659ef3-ef41-43a3-a4d3-17dcee737ed1?action=share&source=collection_link&creator=43709949"
+  },
+  "item": [
+    {
+      "name": "Class",
+      "item": [
+        {
+          "name": "Get All Class",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": []
+            },
+            "url": {
+              "raw": "{{web_link}}/v1/api/class?className=&year=&grade",
+              "host": ["{{web_link}}"],
+              "path": ["v1", "api", "class"],
+              "query": [
+                {
+                  "key": "className",
+                  "value": ""
+                },
+                {
+                  "key": "year",
+                  "value": ""
+                },
+                {
+                  "key": "grade",
+                  "value": null
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"className\" : \"3a1\",\r\n    \"year\": 2025,\r\n    \"grade\": 3,\r\n    \"isAvailable\": true,\r\n    \"feePerLesson\": 100000,\r\n    \"schedule\" : {\r\n        \"startDate\": \"07/19/2025\",\r\n        \"endDate\": \"12/31/2025\",\r\n        \"daysOfLessonInWeek\": [2,4,6]\r\n    },\r\n    \"teacherId\" : \"684ba6d8067cbc595e427fb0\" ,\r\n    \"studentList\": [\"684ba74d067cbc595e427fbc\", \"684ba70e067cbc595e427fb4\"]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{web_link}}/v1/api/class",
+              "host": ["{{web_link}}"],
+              "path": ["v1", "api", "class"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Class Details",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{web_link}}/v1/api/class/:classId",
+              "host": ["{{web_link}}"],
+              "path": ["v1", "api", "class", ":classId"],
+              "variable": [
+                {
+                  "key": "classId",
+                  "value": "684c060dae07023012bcfe22"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update A Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"className\" : \"4A3\",\r\n    \"year\" : 2025,\r\n    \"grade\" : 4,\r\n    \"isAvailable\" : true,\r\n    \"feePerLesson\": 200000,\r\n    \"teacherId\": \"684ba6d8067cbc595e427fb0\",\r\n    \"studentList\" : {\r\n        \"studentIds\": [\"684aee9c10e24b616dccdf76\", \"684ba70e067cbc595e427fb4\"],\r\n        \"action\" : \"set\"\r\n    },\r\n    \"schedule\": {\r\n        \"startDate\": \"2/10/2025\",\r\n        \"endDate\": \"7/29/2025\",\r\n        \"daysOfLessonInWeek\": [2,3,5]\r\n    }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{web_link}}/v1/api/class/:classId",
+              "host": ["{{web_link}}"],
+              "path": ["v1", "api", "class", ":classId"],
+              "variable": [
+                {
+                  "key": "classId",
+                  "value": "684c060dae07023012bcfe22"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete A Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{localhost}}/v1/api/class/:classId",
+              "host": ["{{localhost}}"],
+              "path": ["v1", "api", "class", ":classId"],
+              "variable": [
+                {
+                  "key": "classId",
+                  "value": "684fc778e46d09a3e0e3be6f"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Class Schedule Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{localhost}}/v1/api/class/:classId/schedule",
+              "host": ["{{localhost}}"],
+              "path": ["v1", "api", "class", ":classId", "schedule"],
+              "variable": [
+                {
+                  "key": "classId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Send Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "email",
+                  "value": "user1@gmail.com",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "11111111",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{web_link}}/v1/api/login",
+              "host": ["{{web_link}}"],
+              "path": ["v1", "api", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "See Profile Info",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NGFlZTljMTBlMjRiNjE2ZGNjZGY3NCIsImVtYWlsIjoidXNlcjFAZ21haWwuY29tIiwicm9sZSI6IlN0dWRlbnQiLCJpYXQiOjE3NDk3NDEyMjd9.-X_NCQCdqq9DnhVx8xVrq3nDKz9UOTDDfcxvKsf093M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "email",
+                  "value": "user1@gmail.com",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "11111111",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{web_link}}/v1/api/profile",
+              "host": ["{{web_link}}"],
+              "path": ["v1", "api", "profile"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Create User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\" : \"user4@gmail.com\",\r\n    \"passwordBeforeHash\": \"11111111\",\r\n    \"name\" : \"Phạm Văn C\",\r\n    \"gender\": \"Nam\",\r\n    \"phoneNumber\": \"06324682889\",\r\n    \"address\": \"abc\",\r\n    \"role\": \"Student\",\r\n    \"classId\": null,\r\n    \"parentId\": null,\r\n    \"childId\": null,\r\n    \"wagePerLesson\": null,\r\n    \"discountPercentage\": null,\r\n    \"canSeeTeacher\": null\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{web_link}}/v1/api/user",
+              "host": ["{{web_link}}"],
+              "path": ["v1", "api", "user"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User List",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MzE4NWYzMGIwNDE0OTQ1NDhhY2RlNyIsImVtYWlsIjoiZHVvbmc2YTU3MUBnbWFpbC5jb20iLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NDg2NzY1MzcsImV4cCI6MTc0ODY4MDEzN30.mFFqgUMaCoh4NCEza_iGdjOdsWuFdgeKsdk0kPLUejA",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{web_link}}/v1/api/user/?page=1&limit=10&email=user&sortOrder=",
+              "host": ["{{web_link}}"],
+              "path": ["v1", "api", "user", ""],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "email",
+                  "value": "user"
+                },
+                {
+                  "key": "name",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "role",
+                  "value": "Teacher",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete a user",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{web_link}}/v1/api/user/:id",
+              "host": ["{{web_link}}"],
+              "path": ["v1", "api", "user", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "684aafe70c4c41a968523763"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update a user",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NGE5ZDZkNzA2MjM1Mjc3YjdjOWM4NiIsImVtYWlsIjoidXNlcjFAZ21haWwuY29tIiwicm9sZSI6IlN0dWRlbnQiLCJpYXQiOjE3NDk3MjE1NDd9.56DSl7toLu7NfLPmE_x3xOck-IBis2cJFY2qg5QfiL8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "email",
+                  "value": "user1@gmail.com",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "password",
+                  "value": "11111111",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "gender",
+                  "value": "Nam",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "phoneNumber",
+                  "value": "747747",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "address",
+                  "value": "heh",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{web_link}}/v1/api/user/:id",
+              "host": ["{{web_link}}"],
+              "path": ["v1", "api", "user", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "684a9d6d706235277b7c9c86"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Info",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\" : \"user1@gmail.com\",\r\n    \"passwordBeforeHash\": \"11111111\",\r\n    \"name\" : \"user1\",\r\n    \"gender\": \"Nam\",\r\n    \"phoneNumber\": \"063246828\",\r\n    \"address\": \"abc\",\r\n    \"role\": \"Student\",\r\n    \"classId\": null,\r\n    \"parentId\": null,\r\n    \"childId\": null,\r\n    \"wagePerLesson\": null,\r\n    \"discountPercentage\": null,\r\n    \"canSeeTeacher\": null\r\n}"
+            },
+            "url": {
+              "raw": "{{web_link}}/v1/api/user/:id",
+              "host": ["{{web_link}}"],
+              "path": ["v1", "api", "user", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "684aee9c10e24b616dccdf74"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "item": [
+        {
+          "name": "Create Attendances",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{web_link}}}/v1/api/attendance/:classId",
+              "host": ["{{web_link}}}"],
+              "path": ["v1", "api", "attendance", ":classId"],
+              "variable": [
+                {
+                  "key": "classId",
+                  "value": "684c060dae07023012bcfe22"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Taking Attendance",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"students\": [\r\n        {\r\n            \"studentId\": \"684aee9c10e24b616dccdf76\",\r\n            \"isAbsent\" :  true\r\n        },\r\n        {\r\n            \"studentId\": \"684ba70e067cbc595e427fb4\" ,\r\n            \"isAbsent\" : true\r\n        }\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{localhost}}/v1/api/attendance/:classId?lessonNumber=2",
+              "host": ["{{localhost}}"],
+              "path": ["v1", "api", "attendance", ":classId"],
+              "query": [
+                {
+                  "key": "lessonNumber",
+                  "value": "2"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "classId",
+                  "value": "684c060dae07023012bcfe22"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Attendance List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{localhost}}/v1/api/attendance/:classId",
+              "host": ["{{localhost}}"],
+              "path": ["v1", "api", "attendance", ":classId"],
+              "variable": [
+                {
+                  "key": "classId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Atttendance By Lesson Number",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Teacher",
+      "item": [
+        {
+          "name": "Get Teacher Classes",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{localhost}}/v1/api/teacher/:id/classes",
+              "host": ["{{localhost}}"],
+              "path": ["v1", "api", "teacher", ":id", "classes"],
+              "query": [
+                {
+                  "key": "className",
+                  "value": null,
+                  "disabled": true
+                },
+                {
+                  "key": "grade",
+                  "value": null,
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": null,
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "684ba6d8067cbc595e427fb0"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Calculate Teacher Wage",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "month",
+                  "value": "3",
+                  "type": "text"
+                },
+                {
+                  "key": "year",
+                  "value": "2025",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{localhost}}/v1/api/teacher/:teacherId/calculate",
+              "host": ["{{localhost}}"],
+              "path": ["v1", "api", "teacher", ":teacherId", "calculate"],
+              "variable": [
+                {
+                  "key": "teacherId",
+                  "value": "684e9b3c52f5ca689d6e8d68"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get A Teacher Wage",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{localhost}}/v1/api/teacher/:teacherId/wage?month=3&year=2025",
+              "host": ["{{localhost}}"],
+              "path": ["v1", "api", "teacher", ":teacherId", "wage"],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "3"
+                },
+                {
+                  "key": "year",
+                  "value": "2025"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "teacherId",
+                  "value": "684e9b3c52f5ca689d6e8d68"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Parent",
+      "item": [
+        {
+          "name": "Get Parent's Children",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Student",
+      "item": [
+        {
+          "name": "Get Student's Classes",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{localhost}}/v1/api/student/:studentId/classes",
+              "host": ["{{localhost}}"],
+              "path": ["v1", "api", "student", ":studentId", "classes"],
+              "variable": [
+                {
+                  "key": "studentId",
+                  "value": "684aee9c10e24b616dccdf76"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Student's Attendance",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{localhost}}/v1/api/student/:studentId/attendance/:classId",
+              "host": ["{{localhost}}"],
+              "path": [
+                "v1",
+                "api",
+                "student",
+                ":studentId",
+                "attendance",
+                ":classId"
+              ],
+              "variable": [
+                {
+                  "key": "studentId",
+                  "value": "684aee9c10e24b616dccdf76"
+                },
+                {
+                  "key": "classId",
+                  "value": "684fcaa9ca9619ce0b8a43f8"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "JWT_SECRET",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "web_link",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "localhost",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

@@ -64,11 +64,22 @@ const studentController = {
 
   async getAllStudents(req, res) {
     try {
-      const { page, limit, sort } = req.query;
+      const { page, limit, sort, isActive } = req.query;
+
+      // Parse isActive để có logic rõ ràng: true, false, hoặc undefined
+      let parsedIsActive;
+      if (isActive === "true") {
+        parsedIsActive = true;
+      } else if (isActive === "false") {
+        parsedIsActive = false;
+      }
+      // Nếu isActive không có hoặc không phải "true"/"false" thì để undefined
+
       const options = {
         page: page ? parseInt(page) : 1,
         limit: limit ? parseInt(limit) : 10,
         sort: sort ? JSON.parse(sort) : { createdAt: -1 },
+        isActive: parsedIsActive,
       };
 
       const result = await studentService.getAll({}, options);
@@ -162,6 +173,32 @@ const studentController = {
     } catch (error) {
       return res.status(500).json({
         msg: "Lỗi khi loại học sinh khỏi lớp học",
+        error: error.message,
+      });
+    }
+  },
+
+  // Soft delete student (chỉ admin)
+  async softDeleteStudent(req, res) {
+    try {
+      // Chỉ admin mới có quyền
+      if (req.user.role !== "Admin") {
+        return res.status(403).json({
+          msg: "Chỉ Admin mới có quyền thực hiện thao tác này",
+        });
+      }
+
+      const { studentId } = req.params;
+
+      const result = await studentService.softDelete(studentId);
+
+      return res.status(200).json({
+        msg: "Xóa mềm student thành công",
+        student: result,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi xóa mềm student",
         error: error.message,
       });
     }

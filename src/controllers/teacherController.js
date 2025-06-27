@@ -70,11 +70,22 @@ const teacherController = {
   // Lấy danh sách tất cả giáo viên
   async getAllTeachers(req, res) {
     try {
-      const { page, limit, sort } = req.query;
+      const { page, limit, sort, isActive } = req.query;
+
+      // Parse isActive để có logic rõ ràng: true, false, hoặc undefined
+      let parsedIsActive;
+      if (isActive === "true") {
+        parsedIsActive = true;
+      } else if (isActive === "false") {
+        parsedIsActive = false;
+      }
+      // Nếu isActive không có hoặc không phải "true"/"false" thì để undefined
+
       const options = {
         page: parseInt(page) || 1,
         limit: parseInt(limit) || 10,
         sort: sort ? JSON.parse(sort) : { createdAt: -1 },
+        isActive: parsedIsActive,
       };
 
       const result = await teacherService.getAll({}, options);
@@ -91,26 +102,27 @@ const teacherController = {
     }
   },
 
-  // Lấy danh sách lớp học của giáo viên
-  async getTeacherClasses(req, res) {
+  // Soft delete teacher (chỉ admin)
+  async softDeleteTeacher(req, res) {
     try {
-      const teacherId = req.params.id || req.params.teacherId;
-      const classes = await teacherService.getTeacherClasses(teacherId);
-
-      if (!classes || classes.length === 0) {
-        return res.status(404).json({
-          msg: "Giáo viên này không có lớp học nào",
-          data: [],
+      // Chỉ admin mới có quyền
+      if (req.user.role !== "Admin") {
+        return res.status(403).json({
+          msg: "Chỉ Admin mới có quyền thực hiện thao tác này",
         });
       }
 
+      const { teacherId } = req.params;
+
+      const result = await teacherService.softDelete(teacherId);
+
       return res.status(200).json({
-        msg: "Lấy danh sách lớp học của giáo viên thành công",
-        data: classes,
+        msg: "Xóa mềm teacher thành công",
+        teacher: result,
       });
     } catch (error) {
       return res.status(500).json({
-        msg: "Lỗi khi lấy danh sách lớp học của giáo viên",
+        msg: "Lỗi khi xóa mềm teacher",
         error: error.message,
       });
     }

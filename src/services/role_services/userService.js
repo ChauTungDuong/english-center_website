@@ -116,12 +116,23 @@ const userService = {
    */
   async getAll(filter = {}, options = {}) {
     try {
-      const { page = 1, limit = 10, sort = { createdAt: -1 } } = options;
+      const {
+        page = 1,
+        limit = 10,
+        sort,
+        isActive,
+      } = options;
 
       const skip = (page - 1) * limit;
 
+      // Thêm filter cho isActive nếu được chỉ định
+      const finalFilter = { ...filter };
+      if (isActive !== undefined) {
+        finalFilter.isActive = isActive;
+      }
+
       // Thực hiện query với filter và pagination
-      const users = await User.find(filter)
+      const users = await User.find(finalFilter)
         .select("-password") // Loại bỏ password khỏi kết quả
         .sort(sort)
         .skip(skip)
@@ -129,7 +140,7 @@ const userService = {
         .lean();
 
       // Đếm tổng số documents
-      const totalUsers = await User.countDocuments(filter);
+      const totalUsers = await User.countDocuments(finalFilter);
       const totalPages = Math.ceil(totalUsers / limit);
 
       return {

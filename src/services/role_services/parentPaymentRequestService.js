@@ -5,29 +5,50 @@ const {
   Parent,
   Student,
 } = require("../../models");
+const fs = require("fs");
+const path = require("path");
 
 const parentPaymentRequestService = {
   /**
    * Tạo yêu cầu thanh toán từ phụ huynh
    * @param {Object} requestData - Dữ liệu yêu cầu thanh toán
+   * @param {Object} req - Request object để tạo file URL
    * @returns {Object} Yêu cầu thanh toán đã được tạo
    */
-  async createPaymentRequest(requestData) {
+  async createPaymentRequest(requestData, req = null) {
     return await withTransaction(async (session) => {
       try {
         const {
           parentId,
           paymentId,
           amount,
-          paymentMethod = "bank_transfer",
-          note = "",
-          proofImageUrl = "",
+          uploadedFile = null, // File được upload từ multer
         } = requestData;
 
         if (!parentId || !paymentId || !amount || amount <= 0) {
           throw new Error(
             "Thiếu thông tin bắt buộc: parentId, paymentId, amount"
           );
+        }
+
+        // Xử lý file upload và convert sang Base64
+        let proofImageBase64 = "";
+        let proofImageMimeType = "";
+        let proofImageSize = 0;
+
+        if (uploadedFile) {
+          try {
+            // Đọc file và convert sang Base64
+            const fileBuffer = fs.readFileSync(uploadedFile.path);
+            proofImageBase64 = fileBuffer.toString("base64");
+            proofImageMimeType = uploadedFile.mimetype;
+            proofImageSize = uploadedFile.size;
+
+            // Xóa file tạm sau khi đã convert sang Base64
+            fs.unlinkSync(uploadedFile.path);
+          } catch (fileError) {
+            throw new Error(`Lỗi khi xử lý file: ${fileError.message}`);
+          }
         }
 
         // Validate payment exists and parent owns it
@@ -65,9 +86,7 @@ const parentPaymentRequestService = {
           throw new Error(
             `Số tiền thanh toán không được vượt quá số tiền còn nợ: ${remainingAmount}`
           );
-        }
-
-        // Check if there's already a pending request for this payment
+        } // Check if there's already a pending request for this payment
         const existingRequest = await ParentPaymentRequest.findOne({
           parentId,
           paymentId,
@@ -80,7 +99,7 @@ const parentPaymentRequestService = {
           );
         }
 
-        // Create payment request
+        // Create payment request with Base64 image data
         const paymentRequest = await ParentPaymentRequest.create(
           [
             {
@@ -88,9 +107,9 @@ const parentPaymentRequestService = {
               paymentId,
               studentId: payment.studentId._id,
               amount,
-              paymentMethod,
-              note,
-              proofImageUrl,
+              proofImageBase64,
+              proofImageMimeType,
+              proofImageSize,
               status: "pending",
               requestDate: new Date(),
             },
@@ -158,15 +177,29 @@ const parentPaymentRequestService = {
         .sort({ requestDate: -1 })
         .skip(skip)
         .limit(limit);
-
       const total = await ParentPaymentRequest.countDocuments(filter);
 
+      // Format requests với ảnh Base64 cho Parent
+      const formattedRequests = requests.map((request) => {
+        const requestObj = request.toObject();
+
+        // Thêm imageDataUrl nếu có ảnh
+        if (requestObj.proofImageBase64 && requestObj.proofImageMimeType) {
+          requestObj.imageDataUrl = `data:${requestObj.proofImageMimeType};base64,${requestObj.proofImageBase64}`;
+        }
+
+        // Xóa Base64 raw data để giảm kích thước response (giữ imageDataUrl)
+        delete requestObj.proofImageBase64;
+
+        return requestObj;
+      });
+
       return {
-        requests,
+        requests: formattedRequests,
         pagination: {
           current: page,
           total: Math.ceil(total / limit),
-          count: requests.length,
+          count: formattedRequests.length,
           totalRecords: total,
         },
       };
@@ -211,15 +244,29 @@ const parentPaymentRequestService = {
         .sort({ requestDate: -1 })
         .skip(skip)
         .limit(limit);
-
       const total = await ParentPaymentRequest.countDocuments(filter);
 
+      // Format requests với ảnh Base64 cho Admin
+      const formattedRequests = requests.map((request) => {
+        const requestObj = request.toObject();
+
+        // Thêm imageDataUrl nếu có ảnh
+        if (requestObj.proofImageBase64 && requestObj.proofImageMimeType) {
+          requestObj.imageDataUrl = `data:${requestObj.proofImageMimeType};base64,${requestObj.proofImageBase64}`;
+        }
+
+        // Xóa Base64 raw data để giảm kích thước response (giữ imageDataUrl)
+        delete requestObj.proofImageBase64;
+
+        return requestObj;
+      });
+
       return {
-        requests,
+        requests: formattedRequests,
         pagination: {
           current: page,
           total: Math.ceil(total / limit),
-          count: requests.length,
+          count: formattedRequests.length,
           totalRecords: total,
         },
       };
@@ -240,11 +287,8 @@ const parentPaymentRequestService = {
     return await withTransaction(async (session) => {
       try {
         const { action, adminNote = "", processedBy } = actionData;
-
-        if (!requestId || !action || !processedBy) {
-          throw new Error(
-            "Thiếu thông tin bắt buộc: requestId, action, processedBy"
-          );
+        if (!requestId || !action) {
+          throw new Error("Thiếu thông tin bắt buộc: requestId, action");
         }
 
         if (!["approved", "rejected"].includes(action)) {
@@ -263,12 +307,12 @@ const parentPaymentRequestService = {
 
         if (request.status !== "pending") {
           throw new Error("Yêu cầu thanh toán đã được xử lý trước đó");
-        }
-
-        // Update request status
+        } // Update request status
         request.status = action;
         request.adminNote = adminNote;
-        request.processedBy = processedBy;
+        if (processedBy) {
+          request.processedBy = processedBy;
+        }
         request.processedDate = new Date();
 
         await request.save({ session });
@@ -281,13 +325,11 @@ const parentPaymentRequestService = {
 
           if (!payment) {
             throw new Error("Không tìm thấy thông tin học phí");
-          }
-
-          // Add to payment history
+          } // Add to payment history
           payment.paymentHistory.push({
             amount: request.amount,
-            paymentMethod: request.paymentMethod,
-            note: `Thanh toán từ phụ huynh - ${request.note}`,
+            paymentMethod: "parent_request", // Fixed method for parent requests
+            note: `Thanh toán từ phụ huynh`,
             date: new Date(),
             parentPaymentRequestId: request._id,
           });

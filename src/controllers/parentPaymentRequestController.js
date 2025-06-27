@@ -45,64 +45,7 @@ const parentPaymentRequestController = {
       });
     }
   },
-
-  // Phê duyệt yêu cầu thanh toán
-  async approvePaymentRequest(req, res) {
-    try {
-      const { requestId } = req.params;
-      const { adminNote = "" } = req.body;
-
-      // Get admin info from the authenticated user
-      const processedBy = req.user._id; // Assuming auth middleware sets req.user
-
-      const processedRequest =
-        await parentPaymentRequestService.processPaymentRequest(requestId, {
-          action: "approved",
-          adminNote,
-          processedBy,
-        });
-
-      return res.status(200).json({
-        msg: "Phê duyệt yêu cầu thanh toán thành công",
-        data: processedRequest,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi phê duyệt yêu cầu thanh toán",
-        error: error.message,
-      });
-    }
-  },
-
-  // Từ chối yêu cầu thanh toán
-  async rejectPaymentRequest(req, res) {
-    try {
-      const { requestId } = req.params;
-      const { adminNote = "" } = req.body;
-
-      // Get admin info from the authenticated user
-      const processedBy = req.user._id; // Assuming auth middleware sets req.user
-
-      const processedRequest =
-        await parentPaymentRequestService.processPaymentRequest(requestId, {
-          action: "rejected",
-          adminNote,
-          processedBy,
-        });
-
-      return res.status(200).json({
-        msg: "Từ chối yêu cầu thanh toán thành công",
-        data: processedRequest,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi từ chối yêu cầu thanh toán",
-        error: error.message,
-      });
-    }
-  },
-
-  // Xử lý yêu cầu thanh toán (approve/reject trong một API)
+  // Xử lý yêu cầu thanh toán (phê duyệt/từ chối)
   async processPaymentRequest(req, res) {
     try {
       const { requestId } = req.params;
@@ -115,7 +58,7 @@ const parentPaymentRequestController = {
       }
 
       // Get admin info from the authenticated user
-      const processedBy = req.user._id; // Assuming auth middleware sets req.user
+      const processedBy = req.user._id;
 
       const processedRequest =
         await parentPaymentRequestService.processPaymentRequest(requestId, {

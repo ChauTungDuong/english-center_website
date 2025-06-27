@@ -22,18 +22,17 @@ const parentPaymentRequestSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
-    paymentMethod: {
-      type: String,
-      enum: ["cash", "bank_transfer", "credit_card", "e_wallet"],
-      default: "bank_transfer",
-    },
-    note: {
+    proofImageBase64: {
       type: String,
       default: "",
     },
-    proofImageUrl: {
+    proofImageMimeType: {
       type: String,
       default: "",
+    },
+    proofImageSize: {
+      type: Number,
+      default: 0,
     },
     status: {
       type: String,

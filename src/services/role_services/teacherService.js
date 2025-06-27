@@ -83,7 +83,7 @@ const teacherService = {
       const teacher = await Teacher.findById(teacherId)
         .populate({
           path: "userId",
-          select: "name email gender phoneNumber address role",
+          select: "name email gender phoneNumber address role isActive",
         })
         .populate({
           path: "classId",
@@ -92,6 +92,11 @@ const teacherService = {
 
       if (!teacher) {
         throw new Error("Không tìm thấy giáo viên");
+      }
+
+      // Kiểm tra user có active không
+      if (!teacher.userId || !teacher.userId.isActive) {
+        throw new Error("Giáo viên đã bị vô hiệu hóa");
       }
 
       return teacher;
@@ -212,22 +217,24 @@ const teacherService = {
    */
   async getAll(filter = {}, options = {}) {
     try {
-      const {
-        page = 1,
-        limit = 10,
-        sort = { createdAt: -1 },
-        populate = true,
-      } = options;
+      const { page = 1, limit = 10, sort, populate = true, isActive } = options;
 
       const skip = (page - 1) * limit;
 
       let query = Teacher.find(filter).skip(skip).limit(limit).sort(sort);
 
       if (populate) {
+        // Tạo match condition cho isActive
+        let userMatch = {};
+        if (isActive !== undefined) {
+          userMatch.isActive = isActive;
+        }
+
         query = query
           .populate({
             path: "userId",
-            select: "name email gender phoneNumber address role",
+            select: "name email gender phoneNumber address role isActive",
+            match: userMatch,
           })
           .populate({
             path: "classId",
@@ -236,14 +243,22 @@ const teacherService = {
       }
 
       const teachers = await query;
+
+      // Lọc bỏ teachers có userId null (do user không match với isActive filter)
+      const filteredTeachers = teachers.filter(
+        (teacher) => teacher.userId !== null
+      );
+
+      // Note: Total count là tổng số Teacher records, không tính filter isActive của User
+      // Vì thế currentPage có thể có ít items hơn limit nếu có filter isActive
       const total = await Teacher.countDocuments(filter);
 
       return {
-        teachers,
+        teachers: filteredTeachers,
         pagination: {
           current: page,
           total: Math.ceil(total / limit),
-          count: teachers.length,
+          count: filteredTeachers.length,
           totalRecords: total,
         },
       };
@@ -354,6 +369,38 @@ const teacherService = {
       throw new Error(
         `Lỗi khi lấy danh sách lớp học của giáo viên: ${error.message}`
       );
+    }
+  },
+
+  /**
+   * Soft delete teacher
+   * @param {String} teacherId - ID của giáo viên
+   */
+  async softDelete(teacherId) {
+    try {
+      if (!teacherId) {
+        throw new Error("Thiếu thông tin bắt buộc: teacherId");
+      }
+
+      const teacher = await Teacher.findById(teacherId).populate("userId");
+      if (!teacher) {
+        throw new Error("Không tìm thấy teacher");
+      }
+
+      // Vô hiệu hóa user tương ứng
+      const updatedUser = await userService.update(teacher.userId._id, {
+        isActive: false,
+      });
+
+      return {
+        id: teacher._id,
+        userId: teacher.userId._id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        isActive: updatedUser.isActive, // Lấy từ database thực tế
+      };
+    } catch (error) {
+      throw new Error(`Lỗi khi soft delete teacher: ${error.message}`);
     }
   },
 };

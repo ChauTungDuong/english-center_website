@@ -46,7 +46,9 @@ const attendanceController = {
         return res.status(404).json({
           msg: "Không tìm thấy buổi điểm danh",
         });
-      } // Use markClassAttendance method with proper business logic
+      }
+
+      // Use markClassAttendance method with proper business logic
       const classId = attendance.classId._id || attendance.classId;
       const updatedAttendance = await attendanceService.markClassAttendance(
         classId,

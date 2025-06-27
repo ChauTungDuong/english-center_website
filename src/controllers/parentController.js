@@ -1,4 +1,4 @@
-const { Student, Parent, Payment } = require("../models");
+const { Student, Parent, Payment, User } = require("../models");
 
 const parentService = require("../services/role_services/parentService");
 const parentPaymentRequestService = require("../services/role_services/parentPaymentRequestService");
@@ -65,11 +65,22 @@ const parentController = {
 
   async getAllParents(req, res) {
     try {
-      const { page, limit, sort } = req.query;
+      const { page, limit, sort, isActive } = req.query;
+
+      // Parse isActive để có logic rõ ràng: true, false, hoặc undefined
+      let parsedIsActive;
+      if (isActive === "true") {
+        parsedIsActive = true;
+      } else if (isActive === "false") {
+        parsedIsActive = false;
+      }
+      // Nếu isActive không có hoặc không phải "true"/"false" thì để undefined
+
       const options = {
         page: page ? parseInt(page) : 1,
         limit: limit ? parseInt(limit) : 10,
         sort: sort ? JSON.parse(sort) : { createdAt: -1 },
+        isActive: parsedIsActive,
       };
 
       const result = await parentService.getAll({}, options);
@@ -202,16 +213,26 @@ const parentController = {
         error: error.message,
       });
     }
-  },
-
-  // API mới: Tạo yêu cầu thanh toán
+  }, // API mới: Tạo yêu cầu thanh toán
   async createPaymentRequest(req, res) {
     try {
       const { parentId } = req.params;
-      const requestData = { ...req.body, parentId };
+
+      // Với .fields(), file sẽ ở trong req.files
+      const uploadedFile =
+        req.files && req.files["proof"] ? req.files["proof"][0] : null;
+
+      const requestData = {
+        ...req.body,
+        parentId,
+        uploadedFile, // File từ multer middleware
+      };
 
       const paymentRequest =
-        await parentPaymentRequestService.createPaymentRequest(requestData);
+        await parentPaymentRequestService.createPaymentRequest(
+          requestData,
+          req
+        );
 
       return res.status(201).json({
         msg: "Tạo yêu cầu thanh toán thành công",
@@ -287,6 +308,89 @@ const parentController = {
       });
     }
   },
-};
 
+  // API mới: Admin lấy tất cả yêu cầu thanh toán (có kèm ảnh)
+  async getAllPaymentRequests(req, res) {
+    try {
+      const { status, page, limit, parentId, studentId } = req.query;
+
+      const result = await parentPaymentRequestService.getAllPaymentRequests({
+        status,
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 10,
+        parentId,
+        studentId,
+      });
+
+      return res.status(200).json({
+        msg: "Lấy danh sách tất cả yêu cầu thanh toán thành công",
+        data: result.requests,
+        pagination: result.pagination,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi lấy danh sách yêu cầu thanh toán",
+        error: error.message,
+      });
+    }
+  },
+
+  // API mới: Admin/Teacher xử lý yêu cầu thanh toán (approve/reject)
+  async processPaymentRequest(req, res) {
+    try {
+      const { requestId } = req.params;
+      const { action, adminNote } = req.body;
+
+      // processedBy sẽ là ID của admin/teacher đang đăng nhập
+      const processedBy = req.user?.id || req.body.processedBy;
+
+      const result = await parentPaymentRequestService.processPaymentRequest(
+        requestId,
+        {
+          action,
+          adminNote,
+          processedBy,
+        }
+      );
+
+      return res.status(200).json({
+        msg: `${
+          action === "approved" ? "Duyệt" : "Từ chối"
+        } yêu cầu thanh toán thành công`,
+        data: result,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi xử lý yêu cầu thanh toán",
+        error: error.message,
+      });
+    }
+  },
+
+  // Soft delete parent (chỉ admin)
+  async softDeleteParent(req, res) {
+    try {
+      // Chỉ admin mới có quyền
+      if (req.user.role !== "Admin") {
+        return res.status(403).json({
+          msg: "Chỉ Admin mới có quyền thực hiện thao tác này",
+        });
+      }
+
+      const { parentId } = req.params;
+
+      const result = await parentService.softDelete(parentId);
+
+      return res.status(200).json({
+        msg: "Xóa mềm parent thành công",
+        parent: result,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi xóa mềm parent",
+        error: error.message,
+      });
+    }
+  },
+};
 module.exports = parentController;

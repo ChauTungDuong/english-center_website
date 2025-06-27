@@ -1,6 +1,6 @@
 const express = require("express");
 require("dotenv").config();
-// const path = require("path");
+const path = require("path");
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -14,11 +14,15 @@ const {
   parentRouter,
   paymentRouter,
   announcementRouter,
-  statisticsRouter,
+  teacherWageRouter,
+  statisticRouter,
+  parentPaymentRequestRouter,
 } = require("./routes");
 
-const parentPaymentRequestRouter = require("./routes/parentPaymentRequestRoutes");
 const { connection, createAdminIfNotExist } = require("./config/dbConnect");
+
+// Serve static files from uploads directory
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // app.use(express.static(path.join("./src", "public")));
 
@@ -26,7 +30,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes với prefix /v1/api/
-app.use("/v1/api/", router);
+app.use("/v1/api", router);
 app.use("/v1/api/users", userRouter);
 app.use("/v1/api/classes", classRouter);
 app.use("/v1/api/attendance", attendanceRouter);
@@ -35,8 +39,9 @@ app.use("/v1/api/students", studentRouter);
 app.use("/v1/api/parents", parentRouter);
 app.use("/v1/api/payments", paymentRouter);
 app.use("/v1/api/announcements", announcementRouter);
-app.use("/v1/api/statistics", statisticsRouter);
+app.use("/v1/api/teacher-wages", teacherWageRouter);
 app.use("/v1/api/parent-payment-requests", parentPaymentRequestRouter);
+app.use("/v1/api/statistics", statisticRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

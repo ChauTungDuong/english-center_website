@@ -6,6 +6,7 @@ const userUpdateFields = (updateData) => {
     "phoneNumber",
     "address",
     "gender",
+    "isActive",
   ];
   const filteredData = {};
 

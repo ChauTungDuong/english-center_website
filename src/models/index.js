@@ -8,6 +8,7 @@ const Payment = require("./Payments");
 const TeacherWage = require("./TeacherWage");
 const Announcement = require("./Announcement");
 const ParentPaymentRequest = require("./ParentPaymentRequest");
+const Token = require("./Token");
 
 module.exports = {
   User,
@@ -20,4 +21,5 @@ module.exports = {
   TeacherWage,
   Announcement,
   ParentPaymentRequest,
+  Token,
 };
