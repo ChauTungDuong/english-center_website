@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 require("dotenv").config();
 const path = require("path");
 const app = express();
@@ -13,7 +14,8 @@ const {
   studentRouter,
   parentRouter,
   paymentRouter,
-  announcementRouter,
+  advertisementRouter,
+  notificationRouter,
   teacherWageRouter,
   statisticRouter,
   parentPaymentRequestRouter,
@@ -23,6 +25,15 @@ const { connection, createAdminIfNotExist } = require("./config/dbConnect");
 
 // Serve static files from uploads directory
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
+// Enable CORS for all origins (for development)
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 // app.use(express.static(path.join("./src", "public")));
 
@@ -38,7 +49,8 @@ app.use("/v1/api/teachers", teacherRouter);
 app.use("/v1/api/students", studentRouter);
 app.use("/v1/api/parents", parentRouter);
 app.use("/v1/api/payments", paymentRouter);
-app.use("/v1/api/announcements", announcementRouter);
+app.use("/v1/api/advertisements", advertisementRouter);
+app.use("/v1/api/notifications", notificationRouter);
 app.use("/v1/api/teacher-wages", teacherWageRouter);
 app.use("/v1/api/parent-payment-requests", parentPaymentRequestRouter);
 app.use("/v1/api/statistics", statisticRouter);

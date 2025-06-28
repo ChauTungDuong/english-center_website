@@ -1,32 +1,7 @@
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
 
-// Ensure upload directory exists
-const ensureUploadDir = (dir) => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-};
-
-// Configuration for payment proof images (temporary storage for Base64 conversion)
-const paymentProofStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, "../../uploads/temp");
-    ensureUploadDir(uploadPath);
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    // Generate unique filename: parentId_paymentId_timestamp.ext
-    const { parentId, paymentId } = req.body;
-    const timestamp = Date.now();
-    const ext = path.extname(file.originalname);
-    const filename = `temp_${parentId || "unknown"}_${
-      paymentId || "unknown"
-    }_${timestamp}${ext}`;
-    cb(null, filename);
-  },
-});
+// Memory storage - no file system storage, keep files in memory as Buffer
+const memoryStorage = multer.memoryStorage();
 
 // File filter for images only
 const imageFileFilter = (req, file, cb) => {
@@ -38,9 +13,27 @@ const imageFileFilter = (req, file, cb) => {
   }
 };
 
-// Multer configuration for payment proof images
+// Multer configuration for payment proof images (memory storage)
 const uploadPaymentProof = multer({
-  storage: paymentProofStorage,
+  storage: memoryStorage,
+  fileFilter: imageFileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+});
+
+// Multer configuration for advertisement images (memory storage)
+const uploadAnnouncementImage = multer({
+  storage: memoryStorage,
+  fileFilter: imageFileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+});
+
+// General upload configuration for advertisements (memory storage)
+const upload = multer({
+  storage: memoryStorage,
   fileFilter: imageFileFilter,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
@@ -58,8 +51,14 @@ const handleUploadError = (error, req, res, next) => {
     }
     if (error.code === "LIMIT_FILE_COUNT") {
       return res.status(400).json({
-        msg: "Quá nhiều file. Chỉ được upload 1 file",
+        msg: "Quá nhiều file. Tối đa 5 file",
         error: "TOO_MANY_FILES",
+      });
+    }
+    if (error.code === "LIMIT_UNEXPECTED_FILE") {
+      return res.status(400).json({
+        msg: "Tên field không đúng. Sử dụng 'images'",
+        error: "UNEXPECTED_FIELD",
       });
     }
   }
@@ -77,36 +76,9 @@ const handleUploadError = (error, req, res, next) => {
   });
 };
 
-// Utility function to get file URL
-const getFileUrl = (req, filename) => {
-  const protocol = req.protocol;
-  const host = req.get("host");
-  return `${protocol}://${host}/uploads/payment-proofs/${filename}`;
-};
-
-// Clean up old files (optional utility)
-const cleanupOldFiles = (directory, maxAge = 30 * 24 * 60 * 60 * 1000) => {
-  try {
-    const files = fs.readdirSync(directory);
-    const now = Date.now();
-
-    files.forEach((file) => {
-      const filePath = path.join(directory, file);
-      const stats = fs.statSync(filePath);
-
-      if (now - stats.mtime.getTime() > maxAge) {
-        fs.unlinkSync(filePath);
-        console.log(`Deleted old file: ${file}`);
-      }
-    });
-  } catch (error) {
-    console.error("Error cleaning up old files:", error);
-  }
-};
-
 module.exports = {
   uploadPaymentProof,
+  uploadAnnouncementImage,
+  upload,
   handleUploadError,
-  getFileUrl,
-  cleanupOldFiles,
 };

@@ -155,9 +155,9 @@
 							]
 						},
 						"url": {
-							"raw": "{{localhost}}/v1/api/change-password",
+							"raw": "{{web_link}}/v1/api/change-password",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -194,12 +194,11 @@
 							]
 						},
 						"url": {
-							"raw": "{{localhost}}/v1/api/login",
+							"raw": "{{web_link}}v1/api/login",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}v1"
 							],
 							"path": [
-								"v1",
 								"api",
 								"login"
 							]
@@ -223,9 +222,9 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "{{localhost}}/v1/api/logout",
+							"raw": "{{web_link}}/v1/api/logout",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -262,9 +261,9 @@
 							]
 						},
 						"url": {
-							"raw": "{{localhost}}/v1/api/forgot-password",
+							"raw": "{{web_link}}/v1/api/forgot-password",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -299,9 +298,9 @@
 							]
 						},
 						"url": {
-							"raw": "{{localhost}}/v1/api/verify-reset-code",
+							"raw": "{{web_link}}/v1/api/verify-reset-code",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -343,12 +342,11 @@
 							]
 						},
 						"url": {
-							"raw": "{{localhost}}/v1/api/reset-password",
+							"raw": "{{web_link}}v1/api/reset-password",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}v1"
 							],
 							"path": [
-								"v1",
 								"api",
 								"reset-password"
 							]
@@ -390,9 +388,9 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{localhost}}/v1/api/users/?page=1&limit=10&email=&name=&role=&sort&isActive=",
+							"raw": "{{web_link}}/v1/api/users/?page=1&limit=10&email=&name=&role=&sort&isActive=",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -435,7 +433,7 @@
 					"response": []
 				},
 				{
-					"name": "New Request",
+					"name": "Activate/ Deactivate User (Admin)",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -460,12 +458,11 @@
 							]
 						},
 						"url": {
-							"raw": "{{localhost}}/v1/api/users/:userId/status",
+							"raw": "{{web_link}}v1/api/users/:userId/status",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}v1"
 							],
 							"path": [
-								"v1",
 								"api",
 								"users",
 								":userId",
@@ -502,9 +499,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{localhost}}/v1/api/classes/overview",
+							"raw": "{{web_link}}/v1/api/classes/overview",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -647,9 +644,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{localhost}}/v1/api/classes/:classId?include=attendance,detailed,students,schedule",
+							"raw": "{{web_link}}/v1/api/classes/:classId?include=attendance,detailed,students,schedule",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -1062,9 +1059,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{localhost}}/v1/api/teachers/",
+							"raw": "{{web_link}}/v1/api/teachers/",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -1110,9 +1107,9 @@
 							]
 						},
 						"url": {
-							"raw": "{{localhost}}/v1/api/teachers/:teacherId",
+							"raw": "{{web_link}}/v1/api/teachers/:teacherId",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -1198,9 +1195,9 @@
 							"urlencoded": []
 						},
 						"url": {
-							"raw": "{{localhost}}/v1/api/teachers?page&limit&sort&isActive=false",
+							"raw": "{{web_link}}/v1/api/teachers?page&limit&sort&isActive=false",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -1245,9 +1242,9 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{localhost}}/v1/api/teachers/:teacherId/soft",
+							"raw": "{{web_link}}/v1/api/teachers/:teacherId/soft",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -1296,9 +1293,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{localhost}}/v1/api/parents",
+							"raw": "{{web_link}}/v1/api/parents",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -1325,9 +1322,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{localhost}}/v1/api/parents?page=1&limit=10&sort&isActive=false",
+							"raw": "{{web_link}}/v1/api/parents?page=1&limit=10&sort&isActive=false",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -1460,9 +1457,9 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{localhost}}/v1/api/parents/:parentId/soft",
+							"raw": "{{web_link}}/v1/api/parents/:parentId/soft",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -1497,9 +1494,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{localhost}}/v1/api/parents/:parentId/children-details",
+							"raw": "{{web_link}}/v1/api/parents/:parentId/children-details",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -1594,9 +1591,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{localhost}}/v1/api/students",
+							"raw": "{{web_link}}/v1/api/students",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -1623,9 +1620,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{localhost}}/v1/api/students?page&limit&sort&isActive=false",
+							"raw": "{{web_link}}/v1/api/students?page&limit&sort&isActive=false",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -1682,9 +1679,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{localhost}}/v1/api/students/:studentId",
+							"raw": "{{web_link}}/v1/api/students/:studentId",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -1763,9 +1760,9 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{localhost}}/v1/api/students/:studentId/soft",
+							"raw": "{{web_link}}/v1/api/students/:studentId/soft",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -1944,9 +1941,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{localhost}}/v1/api/parents/:parentId/unpaid-payments?month=&year=",
+							"raw": "{{web_link}}/v1/api/parents/:parentId/unpaid-payments?month=&year=",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -2011,9 +2008,9 @@
 							]
 						},
 						"url": {
-							"raw": "{{localhost}}/v1/api/parents/:parentId/payment-request",
+							"raw": "{{web_link}}/v1/api/parents/:parentId/payment-request",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -2048,9 +2045,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{localhost}}/v1/api/parent-payment-requests",
+							"raw": "{{web_link}}/v1/api/parent-payment-requests",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -2077,9 +2074,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{localhost}}/v1/api/parent-payment-requests/:requestId",
+							"raw": "{{web_link}}/v1/api/parent-payment-requests/:requestId",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -2123,9 +2120,9 @@
 							]
 						},
 						"url": {
-							"raw": "{{localhost}}/v1/api/parent-payment-requests/:requestId/process",
+							"raw": "{{web_link}}/v1/api/parent-payment-requests/:requestId/process",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -2165,9 +2162,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{localhost}}/v1/api/teacher-wages?month&year&teacherId=&paymentStatus=&page&limit&sort&includeList=&includeStats=",
+							"raw": "{{web_link}}/v1/api/teacher-wages?month&year&teacherId=&paymentStatus=&page&limit&sort&includeList=&includeStats=",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -2247,9 +2244,9 @@
 							]
 						},
 						"url": {
-							"raw": "{{localhost}}/v1/api/teacher-wages/calculate",
+							"raw": "{{web_link}}/v1/api/teacher-wages/calculate",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -2277,9 +2274,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{localhost}}/v1/api/teacher-wages/:teacherWageId",
+							"raw": "{{web_link}}/v1/api/teacher-wages/:teacherWageId",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -2313,9 +2310,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{localhost}}/v1/api/teacher-wages/teacher/:teacherId?month&year&isPaid&page&limit",
+							"raw": "{{web_link}}/v1/api/teacher-wages/teacher/:teacherId?month&year&isPaid&page&limit",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -2382,9 +2379,9 @@
 							]
 						},
 						"url": {
-							"raw": "{{localhost}}/v1/api/teacher-wages/:teacherWageId/process",
+							"raw": "{{web_link}}/v1/api/teacher-wages/:teacherWageId/process",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -2419,9 +2416,9 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{localhost}}/v1/api/teacher-wages/:teacherWageId",
+							"raw": "{{web_link}}/v1/api/teacher-wages/:teacherWageId",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -2483,9 +2480,9 @@
 							]
 						},
 						"url": {
-							"raw": "{{localhost}}/v1/api/teacher-wages/:teacherWageId",
+							"raw": "{{web_link}}/v1/api/teacher-wages/:teacherWageId",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",
@@ -2524,9 +2521,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{localhost}}/v1/api/statistics?month&year&startDate&endDate&classId&teacherId",
+							"raw": "{{web_link}}/v1/api/statistics?month&year&startDate&endDate&classId&teacherId",
 							"host": [
-								"{{localhost}}"
+								"{{web_link}}"
 							],
 							"path": [
 								"v1",

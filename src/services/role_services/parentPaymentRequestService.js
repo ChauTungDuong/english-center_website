@@ -5,8 +5,7 @@ const {
   Parent,
   Student,
 } = require("../../models");
-const fs = require("fs");
-const path = require("path");
+const imageService = require("../shared/imageService");
 
 const parentPaymentRequestService = {
   /**
@@ -31,21 +30,18 @@ const parentPaymentRequestService = {
           );
         }
 
-        // Xử lý file upload và convert sang Base64
+        // Xử lý file upload và convert sang Base64 sử dụng shared image service
         let proofImageBase64 = "";
         let proofImageMimeType = "";
         let proofImageSize = 0;
 
         if (uploadedFile) {
           try {
-            // Đọc file và convert sang Base64
-            const fileBuffer = fs.readFileSync(uploadedFile.path);
-            proofImageBase64 = fileBuffer.toString("base64");
-            proofImageMimeType = uploadedFile.mimetype;
-            proofImageSize = uploadedFile.size;
-
-            // Xóa file tạm sau khi đã convert sang Base64
-            fs.unlinkSync(uploadedFile.path);
+            const imageComponents =
+              imageService.convertToBase64Components(uploadedFile);
+            proofImageBase64 = imageComponents.base64;
+            proofImageMimeType = imageComponents.mimeType;
+            proofImageSize = imageComponents.size;
           } catch (fileError) {
             throw new Error(`Lỗi khi xử lý file: ${fileError.message}`);
           }
@@ -183,9 +179,12 @@ const parentPaymentRequestService = {
       const formattedRequests = requests.map((request) => {
         const requestObj = request.toObject();
 
-        // Thêm imageDataUrl nếu có ảnh
+        // Thêm imageDataUrl nếu có ảnh sử dụng shared image service
         if (requestObj.proofImageBase64 && requestObj.proofImageMimeType) {
-          requestObj.imageDataUrl = `data:${requestObj.proofImageMimeType};base64,${requestObj.proofImageBase64}`;
+          requestObj.imageDataUrl = imageService.convertComponentsToDataUrl(
+            requestObj.proofImageBase64,
+            requestObj.proofImageMimeType
+          );
         }
 
         // Xóa Base64 raw data để giảm kích thước response (giữ imageDataUrl)
@@ -250,9 +249,12 @@ const parentPaymentRequestService = {
       const formattedRequests = requests.map((request) => {
         const requestObj = request.toObject();
 
-        // Thêm imageDataUrl nếu có ảnh
+        // Thêm imageDataUrl nếu có ảnh sử dụng shared image service
         if (requestObj.proofImageBase64 && requestObj.proofImageMimeType) {
-          requestObj.imageDataUrl = `data:${requestObj.proofImageMimeType};base64,${requestObj.proofImageBase64}`;
+          requestObj.imageDataUrl = imageService.convertComponentsToDataUrl(
+            requestObj.proofImageBase64,
+            requestObj.proofImageMimeType
+          );
         }
 
         // Xóa Base64 raw data để giảm kích thước response (giữ imageDataUrl)
