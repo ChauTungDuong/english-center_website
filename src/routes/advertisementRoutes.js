@@ -26,42 +26,26 @@ router.get(
   advertisementController.getAllAdvertisements
 );
 
-// Admin: Get advertisement statistics
-router.get(
-  "/statistics",
-  auth,
-  checkRole(["Admin"]),
-  advertisementController.getAdvertisementStatistics
-);
-
 // Admin: Xem chi tiết quảng cáo
 router.get(
-  "/:id",
+  "/:advertisementId",
   auth,
   checkRole(["Admin"]),
   advertisementController.getAdvertisementById
 );
 
 // Admin: Sửa quảng cáo (chỉnh sửa thông tin hoặc thay đổi trạng thái)
-router.put(
-  "/:id",
+router.patch(
+  "/:advertisementId",
   auth,
   checkRole(["Admin"]),
   upload.array("images", 5), // Support multiple images
   advertisementController.updateAdvertisement
 );
 
-// Admin: Toggle advertisement status (activate/deactivate)
-router.patch(
-  "/:id/toggle-status",
-  auth,
-  checkRole(["Admin"]),
-  advertisementController.toggleAdvertisementStatus
-);
-
 // Admin: Xóa quảng cáo
 router.delete(
-  "/:id",
+  "/:advertisementId",
   auth,
   checkRole(["Admin"]),
   advertisementController.deleteAdvertisement

@@ -22,6 +22,7 @@ const {
 } = require("./routes");
 
 const { connection, createAdminIfNotExist } = require("./config/dbConnect");
+const notificationScheduler = require("./utils/notificationScheduler");
 
 // Serve static files from uploads directory
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
@@ -76,6 +77,10 @@ app.use((req, res) => {
   try {
     await connection();
     await createAdminIfNotExist();
+
+    // // Start notification scheduler
+    // notificationScheduler.start();
+
     app.listen(port, () => {
       console.log(`App listening on http://localhost:${port}`);
     });

@@ -95,7 +95,7 @@ class EmailService {
     <body>
         <div class="container">
             <div class="header">
-                <h1>🔐 English Center</h1>
+                <h1>🔐 Episteme English Center</h1>
                 <p>Yêu cầu đặt lại mật khẩu</p>
             </div>
             <div class="content">
@@ -126,11 +126,11 @@ class EmailService {
                 
                 <p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
                 
-                <p>Trân trọng,<br><strong>Đội ngũ English Center</strong></p>
+                <p>Trân trọng,<br><strong>Đội ngũ Episteme English Center</strong></p>
             </div>
             <div class="footer">
                 <p>Email được gửi tự động, vui lòng không trả lời email này.</p>
-                <p>&copy; ${new Date().getFullYear()} English Center. All rights reserved.</p>
+                <p>&copy; ${new Date().getFullYear()} Episteme English Center. All rights reserved.</p>
             </div>
         </div>
     </body>
@@ -168,7 +168,156 @@ Trân trọng,
 
 ---
 Email được gửi tự động, vui lòng không trả lời email này.
-© ${new Date().getFullYear()} English Center. All rights reserved.
+© ${new Date().getFullYear()} Episteme English Center. All rights reserved.
+    `;
+  }
+
+  /**
+   * Gửi email thông báo chung
+   * @param {Object} data - Dữ liệu email
+   * @param {String} data.to - Email người nhận
+   * @param {String} data.subject - Tiêu đề email
+   * @param {String} data.text - Nội dung text
+   * @param {String} data.html - Nội dung HTML (optional)
+   * @returns {Object} Kết quả gửi email
+   */
+  async sendEmail(data) {
+    try {
+      const { to, subject, text, html } = data;
+
+      const mailOptions = {
+        from: {
+          name: "Episteme English Center - Trung tâm tiếng Anh",
+          address: process.env.EMAIL_USER,
+        },
+        to: to,
+        subject: subject,
+        text: text,
+        html: html || `<p>${text}</p>`, // Use HTML if provided, otherwise convert text to HTML
+      };
+
+      const result = await this.transporter.sendMail(mailOptions);
+
+      return {
+        success: true,
+        messageId: result.messageId,
+        message: "Email đã được gửi thành công",
+      };
+    } catch (error) {
+      console.error("Lỗi khi gửi email:", error);
+      throw new Error(`Không thể gửi email: ${error.message}`);
+    }
+  }
+
+  /**
+   * Gửi email thông báo với template đẹp
+   * @param {Object} data - Dữ liệu email
+   * @param {String} data.to - Email người nhận
+   * @param {String} data.subject - Tiêu đề email
+   * @param {String} data.content - Nội dung thông báo
+   * @param {String} data.recipientName - Tên người nhận
+   * @returns {Object} Kết quả gửi email
+   */
+  async sendNotificationEmail(data) {
+    try {
+      const { to, subject, content, recipientName } = data;
+
+      const mailOptions = {
+        from: {
+          name: "Episteme English Center - Trung tâm tiếng Anh",
+          address: process.env.EMAIL_USER,
+        },
+        to: to,
+        subject: subject,
+        html: this.generateNotificationHTML(recipientName, subject, content),
+        text: this.generateNotificationText(recipientName, subject, content),
+      };
+
+      const result = await this.transporter.sendMail(mailOptions);
+
+      return {
+        success: true,
+        messageId: result.messageId,
+        message: "Email thông báo đã được gửi thành công",
+      };
+    } catch (error) {
+      console.error("Lỗi khi gửi email thông báo:", error);
+      throw new Error(`Không thể gửi email thông báo: ${error.message}`);
+    }
+  }
+
+  /**
+   * Tạo nội dung HTML cho email thông báo
+   */
+  generateNotificationHTML(recipientName, subject, content) {
+    return `
+    <!DOCTYPE html>
+    <html lang="vi">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${subject}</title>
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: #2196F3; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
+            .notification-content { background: #fff; padding: 20px; border-left: 4px solid #2196F3; margin: 20px 0; border-radius: 0 5px 5px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+            .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+            h1 { margin: 0; font-size: 24px; }
+            h3 { margin: 0 0 15px 0; color: #2196F3; font-size: 18px; }
+            p { margin: 10px 0; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>📢 Episteme English Center</h1>
+                <p>Thông báo từ trung tâm</p>
+            </div>
+            <div class="content">
+                <p>Xin chào <strong>${recipientName || "bạn"}</strong>,</p>
+                
+                <div class="notification-content">
+                    <h3>${subject}</h3>
+                    <p>${content}</p>
+                </div>
+                
+                <p>Cảm ơn bạn đã quan tâm và theo dõi thông tin từ Episteme English Center.</p>
+                
+                <p>Trân trọng,<br><strong>Đội ngũ Episteme English Center</strong></p>
+            </div>
+            <div class="footer">
+                <p>Email được gửi tự động từ hệ thống Episteme English Center.</p>
+                <p>&copy; ${new Date().getFullYear()} Episteme English Center. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+  }
+
+  /**
+   * Tạo nội dung text cho email thông báo
+   */
+  generateNotificationText(recipientName, subject, content) {
+    return `
+Episteme English Center - Thông báo
+
+Xin chào ${recipientName || "bạn"},
+
+${subject}
+
+${content}
+
+Cảm ơn bạn đã quan tâm và theo dõi thông tin từ Episteme English Center.
+
+Trân trọng,
+Đội ngũ Episteme English Center
+
+---
+Email được gửi tự động từ hệ thống Episteme English Center.
+© ${new Date().getFullYear()} Episteme English Center. All rights reserved.
     `;
   }
 

@@ -13,7 +13,7 @@ router.get(
   notificationController.getAllNotifications
 );
 
-// Admin/Teacher: Tạo thông báo mới
+// Admin/Teacher: Tạo và gửi thông báo mới
 router.post(
   "/",
   auth,
@@ -21,12 +21,44 @@ router.post(
   notificationController.createNotification
 );
 
-// Admin: Get notification statistics
-router.get(
-  "/statistics",
+// Admin: Thiết lập tự động gửi thông báo vắng mặt và thanh toán
+router.post(
+  "/auto-notifications",
   auth,
   checkRole(["Admin"]),
-  notificationController.getNotificationStatistics
+  notificationController.setupAutoNotifications
+);
+
+// Admin: Xem cấu hình tự động gửi thông báo
+router.get(
+  "/auto-settings",
+  auth,
+  checkRole(["Admin"]),
+  notificationController.getAutoNotificationSettings
+);
+
+// Admin: Cập nhật cấu hình tự động gửi thông báo
+router.patch(
+  "/auto-settings/:settingId",
+  auth,
+  checkRole(["Admin"]),
+  notificationController.updateAutoNotificationSettings
+);
+
+// Admin: Trigger manual execution of auto notification
+router.post(
+  "/auto-settings/:settingId/trigger",
+  auth,
+  checkRole(["Admin"]),
+  notificationController.triggerManualNotification
+);
+
+// Admin: Get scheduler status
+router.get(
+  "/scheduler/status",
+  auth,
+  checkRole(["Admin"]),
+  notificationController.getSchedulerStatus
 );
 
 // Teacher Routes
@@ -49,30 +81,18 @@ router.get(
 
 // Common Routes (All authenticated users)
 // Xem chi tiết thông báo
-router.get("/:id", auth, notificationController.getNotificationById);
-
-// Admin/Teacher: Cập nhật thông báo
-router.put(
-  "/:id",
+router.get(
+  "/:notificationId",
   auth,
-  checkRole(["Admin", "Teacher"]),
-  notificationController.updateNotification
+  notificationController.getNotificationById
 );
 
-// Admin/Teacher: Xóa thông báo
+// Admin/Teacher: Xóa thông báo (chỉ được xóa, không được sửa)
 router.delete(
-  "/:id",
+  "/:notificationId",
   auth,
   checkRole(["Admin", "Teacher"]),
   notificationController.deleteNotification
-);
-
-// Admin/Teacher: Gửi thông báo qua email
-router.post(
-  "/:id/send-email",
-  auth,
-  checkRole(["Admin", "Teacher"]),
-  notificationController.sendNotificationEmail
 );
 
 module.exports = router;

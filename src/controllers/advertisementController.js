@@ -28,7 +28,8 @@ const getAllAdvertisements = async (req, res) => {
     const { page = 1, limit = 10, isActive, search } = req.query;
     const filters = {};
 
-    if (isActive !== undefined) {
+    // Only filter by isActive if it has a valid value (not empty string)
+    if (isActive !== undefined && isActive !== "") {
       filters.isActive = isActive === "true";
     }
 
@@ -49,10 +50,10 @@ const getAllAdvertisements = async (req, res) => {
       success: true,
       data: result.advertisements,
       pagination: {
-        currentPage: result.currentPage,
-        totalPages: result.totalPages,
-        totalItems: result.totalItems,
-        itemsPerPage: result.itemsPerPage,
+        currentPage: result.pagination.currentPage,
+        totalPages: result.pagination.totalPages,
+        totalItems: result.pagination.totalItems,
+        itemsPerPage: result.pagination.limit,
       },
       message: "Advertisements retrieved successfully",
     });
@@ -67,11 +68,13 @@ const getAllAdvertisements = async (req, res) => {
 };
 
 // Admin only - Get advertisement by ID
-// GET /api/advertisements/:id
+// GET /api/advertisements/:advertisementId
 const getAdvertisementById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const advertisement = await advertisementService.getAdvertisementById(id);
+    const { advertisementId } = req.params;
+    const advertisement = await advertisementService.getAdvertisementById(
+      advertisementId
+    );
 
     if (!advertisement) {
       return res.status(404).json({
@@ -163,10 +166,10 @@ const createAdvertisement = async (req, res) => {
 };
 
 // Admin only - Update advertisement
-// PUT /api/advertisements/:id
+// PATCH /api/advertisements/:advertisementId
 const updateAdvertisement = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { advertisementId } = req.params;
     const {
       title,
       content,
@@ -179,7 +182,9 @@ const updateAdvertisement = async (req, res) => {
     const files = req.files;
 
     // Get current advertisement
-    const currentAd = await advertisementService.getAdvertisementById(id);
+    const currentAd = await advertisementService.getAdvertisementById(
+      advertisementId
+    );
     if (!currentAd) {
       return res.status(404).json({
         success: false,
@@ -235,17 +240,20 @@ const updateAdvertisement = async (req, res) => {
       }
     }
 
-    const updateData = {
-      ...(title && { title }),
-      ...(content && { content }),
-      ...(startDate && { startDate: new Date(startDate) }),
-      ...(endDate && { endDate: new Date(endDate) }),
-      ...(isActive !== undefined && { isActive }),
-      images: currentImages,
-    };
+    const updateData = {};
+
+    // Only update fields that are provided
+    if (title !== undefined) updateData.title = title;
+    if (content !== undefined) updateData.content = content;
+    if (startDate !== undefined) updateData.startDate = new Date(startDate);
+    if (endDate !== undefined) updateData.endDate = new Date(endDate);
+    if (isActive !== undefined) updateData.isActive = isActive;
+
+    // Always update images array (even if empty)
+    updateData.images = currentImages;
 
     const updatedAdvertisement = await advertisementService.updateAdvertisement(
-      id,
+      advertisementId,
       updateData
     );
 
@@ -265,13 +273,15 @@ const updateAdvertisement = async (req, res) => {
 };
 
 // Admin only - Delete advertisement
-// DELETE /api/advertisements/:id
+// DELETE /api/advertisements/:advertisementId
 const deleteAdvertisement = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { advertisementId } = req.params;
 
     // Check if advertisement exists
-    const advertisement = await advertisementService.getAdvertisementById(id);
+    const advertisement = await advertisementService.getAdvertisementById(
+      advertisementId
+    );
     if (!advertisement) {
       return res.status(404).json({
         success: false,
@@ -280,7 +290,7 @@ const deleteAdvertisement = async (req, res) => {
     }
 
     // Delete advertisement (base64 images are stored in database, no file cleanup needed)
-    await advertisementService.deleteAdvertisement(id);
+    await advertisementService.deleteAdvertisement(advertisementId);
 
     res.json({
       success: true,
@@ -296,59 +306,6 @@ const deleteAdvertisement = async (req, res) => {
   }
 };
 
-// Admin only - Toggle advertisement status
-// PATCH /api/advertisements/:id/toggle-status
-const toggleAdvertisementStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updatedAdvertisement =
-      await advertisementService.toggleAdvertisementStatus(id);
-
-    if (!updatedAdvertisement) {
-      return res.status(404).json({
-        success: false,
-        message: "Advertisement not found",
-      });
-    }
-
-    res.json({
-      success: true,
-      data: updatedAdvertisement,
-      message: `Advertisement ${
-        updatedAdvertisement.isActive ? "activated" : "deactivated"
-      } successfully`,
-    });
-  } catch (error) {
-    console.error("Error toggling advertisement status:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to toggle advertisement status",
-      error: error.message,
-    });
-  }
-};
-
-// Admin only - Get advertisement statistics
-// GET /api/advertisements/statistics
-const getAdvertisementStatistics = async (req, res) => {
-  try {
-    const statistics = await advertisementService.getAdvertisementStatistics();
-
-    res.json({
-      success: true,
-      data: statistics,
-      message: "Advertisement statistics retrieved successfully",
-    });
-  } catch (error) {
-    console.error("Error getting advertisement statistics:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to retrieve advertisement statistics",
-      error: error.message,
-    });
-  }
-};
-
 module.exports = {
   getPublicAdvertisements,
   getAllAdvertisements,
@@ -356,6 +313,4 @@ module.exports = {
   createAdvertisement,
   updateAdvertisement,
   deleteAdvertisement,
-  toggleAdvertisementStatus,
-  getAdvertisementStatistics,
 };

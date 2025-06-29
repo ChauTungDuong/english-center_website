@@ -4,3 +4,11 @@ mongo-data
 todo.md 
 phantich.txt
 API_problemCheck.txt
+
+# Temporarily ignore notification-related changes
+src/routes/notificationRoutes.js
+src/controllers/notificationController.js
+src/services/role_services/notificationService.js
+src/utils/notificationScheduler.js
+src/models/Notification.js
+src/models/AutoNotificationSetting.js

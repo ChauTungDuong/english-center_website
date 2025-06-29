@@ -8,6 +8,7 @@ const Payment = require("./Payments");
 const TeacherWage = require("./TeacherWage");
 const Advertisement = require("./Advertisement"); // Advertisement model with image support
 const Notification = require("./Notification"); // New Notification model
+const AutoNotificationSetting = require("./AutoNotificationSetting"); // Auto notification settings
 const ParentPaymentRequest = require("./ParentPaymentRequest");
 const Token = require("./Token");
 
@@ -22,6 +23,7 @@ module.exports = {
   TeacherWage,
   Advertisement, // Changed from Announcement
   Notification, // New
+  AutoNotificationSetting, // New
   ParentPaymentRequest,
   Token,
 };

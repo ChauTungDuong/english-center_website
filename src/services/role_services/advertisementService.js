@@ -23,15 +23,12 @@ const advertisementService = {
       const {
         page = 1,
         limit = 10,
-        isActive,
+        filters = {},
         sortBy = "createdAt",
         sortOrder = "desc",
       } = options;
 
-      const filter = {};
-      if (isActive !== undefined) {
-        filter.isActive = isActive;
-      }
+      const filter = { ...filters };
 
       const sort = {};
       sort[sortBy] = sortOrder === "desc" ? -1 : 1;
@@ -129,71 +126,6 @@ const advertisementService = {
       return advertisement;
     } catch (error) {
       throw new Error(`Failed to delete advertisement: ${error.message}`);
-    }
-  },
-
-  // Toggle advertisement active status
-  toggleAdvertisementStatus: async (id) => {
-    try {
-      const advertisement = await Advertisement.findById(id);
-
-      if (!advertisement) {
-        throw new Error("Advertisement not found");
-      }
-
-      advertisement.isActive = !advertisement.isActive;
-      await advertisement.save();
-
-      return advertisement;
-    } catch (error) {
-      throw new Error(
-        `Failed to toggle advertisement status: ${error.message}`
-      );
-    }
-  },
-
-  // Get advertisement statistics
-  getAdvertisementStatistics: async () => {
-    try {
-      const now = new Date();
-
-      const [
-        totalAdvertisements,
-        activeAdvertisements,
-        currentlyActiveAdvertisements,
-        inactiveAdvertisements,
-        upcomingAdvertisements,
-        expiredAdvertisements,
-      ] = await Promise.all([
-        Advertisement.countDocuments(),
-        Advertisement.countDocuments({ isActive: true }),
-        Advertisement.countDocuments({
-          isActive: true,
-          startDate: { $lte: now },
-          endDate: { $gte: now },
-        }),
-        Advertisement.countDocuments({ isActive: false }),
-        Advertisement.countDocuments({
-          isActive: true,
-          startDate: { $gt: now },
-        }),
-        Advertisement.countDocuments({
-          endDate: { $lt: now },
-        }),
-      ]);
-
-      return {
-        total: totalAdvertisements,
-        active: activeAdvertisements,
-        currentlyActive: currentlyActiveAdvertisements,
-        inactive: inactiveAdvertisements,
-        upcoming: upcomingAdvertisements,
-        expired: expiredAdvertisements,
-      };
-    } catch (error) {
-      throw new Error(
-        `Failed to get advertisement statistics: ${error.message}`
-      );
     }
   },
 

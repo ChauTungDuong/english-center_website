@@ -116,12 +116,7 @@ const userService = {
    */
   async getAll(filter = {}, options = {}) {
     try {
-      const {
-        page = 1,
-        limit = 10,
-        sort,
-        isActive,
-      } = options;
+      const { page = 1, limit = 10, sort, isActive } = options;
 
       const skip = (page - 1) * limit;
 
@@ -138,6 +133,36 @@ const userService = {
         .skip(skip)
         .limit(limit)
         .lean();
+
+      // Fetch role data cho tất cả users
+      if (users.length > 0) {
+        const { Student, Teacher, Parent } = require("../../models");
+        const userIds = users.map((user) => user._id);
+
+        // Parallel queries cho tất cả role types
+        const [students, teachers, parents] = await Promise.all([
+          Student.find({ userId: { $in: userIds } })
+            .select("userId")
+            .lean(),
+          Teacher.find({ userId: { $in: userIds } })
+            .select("userId")
+            .lean(),
+          Parent.find({ userId: { $in: userIds } })
+            .select("userId")
+            .lean(),
+        ]);
+
+        // Tạo lookup map
+        const roleMap = {};
+        students.forEach((s) => (roleMap[s.userId] = s._id));
+        teachers.forEach((t) => (roleMap[t.userId] = t._id));
+        parents.forEach((p) => (roleMap[p.userId] = p._id));
+
+        // Thêm roleId vào users
+        users.forEach((user) => {
+          user.roleId = roleMap[user._id] || null;
+        });
+      }
 
       // Đếm tổng số documents
       const totalUsers = await User.countDocuments(finalFilter);
