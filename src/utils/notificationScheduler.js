@@ -276,11 +276,16 @@ class NotificationScheduler {
 
   // Get status of all cron jobs
   getStatus() {
-    return this.jobs.map((job, index) => ({
-      name: job.options?.name || `job-${index}`,
-      running: job.running || false,
-      scheduled: job.scheduled || false,
-    }));
+    return this.jobs.map((job, index) => {
+      const options = job.options || {};
+      return {
+        name: options.name || `job-${index}`,
+        running: job.running || false,
+        scheduled: job.scheduled || false,
+        timezone: options.timezone || "UTC",
+        expression: job.cronExpression || "unknown",
+      };
+    });
   }
 
   // Manual trigger for testing
