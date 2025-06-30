@@ -37,30 +37,6 @@ router.get(
   notificationController.getAutoNotificationSettings
 );
 
-// Admin: Cập nhật cấu hình tự động gửi thông báo
-router.patch(
-  "/auto-settings/:settingId",
-  auth,
-  checkRole(["Admin"]),
-  notificationController.updateAutoNotificationSettings
-);
-
-// Admin: Trigger manual execution of auto notification
-router.post(
-  "/auto-settings/:settingId/trigger",
-  auth,
-  checkRole(["Admin"]),
-  notificationController.triggerManualNotification
-);
-
-// Admin: Get scheduler status
-router.get(
-  "/scheduler/status",
-  auth,
-  checkRole(["Admin"]),
-  notificationController.getSchedulerStatus
-);
-
 // Teacher Routes
 // Teacher: Xem các thông báo mình đã tạo
 router.get(
@@ -93,6 +69,35 @@ router.delete(
   auth,
   checkRole(["Admin", "Teacher"]),
   notificationController.deleteNotification
+);
+// Admin: Cập nhật cấu hình tự động gửi thông báo
+router.patch(
+  "/auto-settings/:settingId",
+  auth,
+  checkRole(["Admin"]),
+  notificationController.updateAutoNotificationSettings
+);
+
+// Admin: Trigger manual execution of auto notification
+router.post(
+  "/auto-settings/:settingId/trigger",
+  auth,
+  checkRole(["Admin"]),
+  notificationController.triggerManualNotification
+);
+// Admin: Get scheduler status
+router.get(
+  "/scheduler/status",
+  auth,
+  checkRole(["Admin"]),
+  notificationController.getSchedulerStatus
+);
+// Admin: Xóa cấu hình tự động gửi thông báo
+router.delete(
+  "/auto-settings/:settingId",
+  auth,
+  checkRole(["Admin"]),
+  notificationController.deleteAutoNotificationSetting
 );
 
 module.exports = router;

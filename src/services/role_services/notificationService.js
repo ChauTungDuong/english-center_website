@@ -35,9 +35,10 @@ const notificationService = {
         createdByRole,
       } = notificationData;
 
+      // Validate required fields (allow empty content for Parent notifications)
       if (
         !title ||
-        !content ||
+        (!content && targetRole !== "Parent") ||
         !targetRole ||
         !type ||
         !method ||
@@ -171,6 +172,7 @@ const notificationService = {
           path: "studentList",
           populate: [
             { path: "userId", select: "name email" },
+            { path: "classId", select: "className" }, // Add this populate
             {
               path: "parentId",
               populate: { path: "userId", select: "email fullName name" },
@@ -221,7 +223,7 @@ const notificationService = {
           return await Promise.race([
             emailService.sendNotificationEmail({
               to: parentUser.email,
-              subject: `Thông báo về con ${studentData.studentName}`,
+              subject: `Trung tâm xin gửi phụ huynh thông tin về học phí và số buổi học của ${studentData.studentName} như sau :`,
               content: personalizedContent,
               recipientName: parentName,
             }),
@@ -413,13 +415,12 @@ const notificationService = {
     }
   },
 
-  // Get class attendance data (mock implementation - needs actual attendance model)
   // Get individual student data for parent notifications
   getStudentDataForParent: async (studentId) => {
     try {
       const { Student, Class, Attendance, Payment } = require("../../models");
 
-      // Get student info with class
+      // Get student info with class data populated
       const student = await Student.findById(studentId)
         .populate("userId", "name")
         .populate("classId", "className");
@@ -428,68 +429,230 @@ const notificationService = {
         throw new Error("Student not found");
       }
 
-      // For now using mock data, but these should query actual Attendance and Payment models
-      const totalSessions = 20; // Total sessions in course
-      const attendedSessions = 15; // Sessions attended
-      const absentSessions = totalSessions - attendedSessions;
-      const unpaidAmount = 500000; // Amount unpaid in VND
+      // Get class name - student.classId is an array, get the first class or default
+      let className = "Chưa có lớp";
+      let classId = null;
+      if (
+        student.classId &&
+        Array.isArray(student.classId) &&
+        student.classId.length > 0
+      ) {
+        className = student.classId[0].className || "Lỗi tên lớp";
+        classId = student.classId[0]._id;
+      }
+
+      // Get real attendance data
+      let totalSessions = 0;
+      let attendedSessions = 0;
+      let absentSessions = 0;
+
+      if (classId) {
+        // Count total attendance records for this class
+        const attendanceRecords = await Attendance.find({ classId }).sort({
+          date: 1,
+        });
+        totalSessions = attendanceRecords.length;
+
+        // Count attended/absent sessions for this student
+        let studentAbsentCount = 0;
+        let studentAttendedCount = 0;
+
+        for (const record of attendanceRecords) {
+          const studentAttendance = record.students.find(
+            (s) => s.studentId.toString() === studentId.toString()
+          );
+
+          if (studentAttendance) {
+            if (studentAttendance.isAbsent) {
+              studentAbsentCount++;
+            } else {
+              studentAttendedCount++;
+            }
+          }
+        }
+
+        attendedSessions = studentAttendedCount;
+        absentSessions = studentAbsentCount;
+      }
+
+      // Get real payment data - only calculate tuition for attended sessions
+      let unpaidAmount = 0;
+      if (classId) {
+        const currentMonth = new Date().getMonth() + 1;
+        const currentYear = new Date().getFullYear();
+
+        // Get payment record for current month
+        const paymentRecord = await Payment.findOne({
+          studentId,
+          classId,
+          month: currentMonth,
+          year: currentYear,
+        });
+
+        if (paymentRecord) {
+          unpaidAmount = paymentRecord.amountDue - paymentRecord.amountPaid;
+          // Update attendance data from payment record if available
+          if (paymentRecord.totalLessons > 0) {
+            totalSessions = paymentRecord.totalLessons;
+            attendedSessions = paymentRecord.attendedLessons;
+            absentSessions = paymentRecord.absentLessons;
+          }
+        } else {
+          // If no payment record, calculate based on attended sessions only
+          const classData = await Class.findById(classId);
+          if (classData && classData.feePerLesson && attendedSessions > 0) {
+            // Only charge for attended sessions, not total sessions
+            unpaidAmount = classData.feePerLesson * attendedSessions;
+          }
+        }
+      }
 
       return {
         studentName: student.userId.name,
-        className:
-          student.classId.length > 0
-            ? student.classId[0].className
-            : "Chưa có lớp",
+        className,
         totalSessions,
         attendedSessions,
         absentSessions,
-        unpaidAmount,
+        unpaidAmount: Math.max(0, unpaidAmount), // Ensure non-negative
       };
     } catch (error) {
+      console.error("Error in getStudentDataForParent:", error);
       throw new Error(`Error getting student data: ${error.message}`);
     }
   },
 
   // Generate simple notification content for parent
   generateParentNotificationContent: (studentData) => {
-    const content = `Tên con: ${studentData.studentName}, Lớp: ${
-      studentData.className
-    }, Số buổi học: ${studentData.attendedSessions}, Số buổi vắng: ${
-      studentData.absentSessions
-    }, Số tiền chưa đóng: ${studentData.unpaidAmount.toLocaleString(
+    const content = `Học sinh: ${studentData.studentName}, 
+    Lớp: ${studentData.className}, 
+    Số buổi học: ${studentData.attendedSessions},
+    Số buổi vắng: ${studentData.absentSessions}, 
+    Số tiền chưa đóng : ${studentData.unpaidAmount.toLocaleString(
       "vi-VN"
     )} VNĐ`;
 
     return content;
   },
 
-  // Get class attendance data (keeping for backward compatibility)
+  // Get class attendance data from real database
   getClassAttendanceData: async (classId) => {
-    // This would need to integrate with your attendance system
-    // For now, returning mock data
-    return {
-      totalStudents: 25,
-      absentStudents: 3,
-      absenteeDetails: [
-        { studentName: "Nguyễn Văn A", absentDays: 5 },
-        { studentName: "Trần Thị B", absentDays: 3 },
-        { studentName: "Lê Văn C", absentDays: 2 },
-      ],
-    };
+    try {
+      const { Attendance, Student } = require("../../models");
+
+      // Get total students in class
+      const classData = await Class.findById(classId).populate("studentList");
+      const totalStudents = classData ? classData.studentList.length : 0;
+
+      // Get recent attendance records (last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const attendanceRecords = await Attendance.find({
+        classId,
+        date: { $gte: thirtyDaysAgo },
+      })
+        .populate("students.studentId", "userId")
+        .populate({
+          path: "students.studentId",
+          populate: { path: "userId", select: "name" },
+        });
+
+      // Count absent students and get details
+      const absentStudentsMap = new Map();
+
+      attendanceRecords.forEach((record) => {
+        record.students.forEach((student) => {
+          if (
+            student.isAbsent &&
+            student.studentId &&
+            student.studentId.userId
+          ) {
+            const studentName = student.studentId.userId.name;
+            const studentId = student.studentId._id.toString();
+
+            if (!absentStudentsMap.has(studentId)) {
+              absentStudentsMap.set(studentId, {
+                studentName,
+                absentDays: 0,
+              });
+            }
+            absentStudentsMap.get(studentId).absentDays++;
+          }
+        });
+      });
+
+      const absenteeDetails = Array.from(absentStudentsMap.values())
+        .sort((a, b) => b.absentDays - a.absentDays) // Sort by most absent
+        .slice(0, 10); // Top 10 most absent students
+
+      return {
+        totalStudents,
+        absentStudents: absenteeDetails.length,
+        absenteeDetails,
+      };
+    } catch (error) {
+      console.error("Error getting attendance data:", error);
+      // Return fallback data if error
+      return {
+        totalStudents: 0,
+        absentStudents: 0,
+        absenteeDetails: [],
+      };
+    }
   },
 
-  // Get class payment data (mock implementation - needs actual payment model)
+  // Get class payment data from real database
   getClassPaymentData: async (classId) => {
-    // This would need to integrate with your payment system
-    // For now, returning mock data
-    return {
-      totalStudents: 25,
-      unpaidStudents: 2,
-      unpaidDetails: [
-        { studentName: "Nguyễn Văn A", unpaidAmount: 500000 },
-        { studentName: "Trần Thị B", unpaidAmount: 300000 },
-      ],
-    };
+    try {
+      const { Payment, Student } = require("../../models");
+
+      // Get total students in class
+      const classData = await Class.findById(classId).populate("studentList");
+      const totalStudents = classData ? classData.studentList.length : 0;
+
+      const currentMonth = new Date().getMonth() + 1;
+      const currentYear = new Date().getFullYear();
+
+      // Get payment records for current month
+      const paymentRecords = await Payment.find({
+        classId,
+        month: currentMonth,
+        year: currentYear,
+      }).populate({
+        path: "studentId",
+        populate: { path: "userId", select: "name" },
+      });
+
+      // Find students with unpaid amounts
+      const unpaidDetails = [];
+
+      paymentRecords.forEach((payment) => {
+        const unpaidAmount = payment.amountDue - payment.amountPaid;
+        if (unpaidAmount > 0 && payment.studentId && payment.studentId.userId) {
+          unpaidDetails.push({
+            studentName: payment.studentId.userId.name,
+            unpaidAmount,
+          });
+        }
+      });
+
+      // Sort by highest unpaid amount
+      unpaidDetails.sort((a, b) => b.unpaidAmount - a.unpaidAmount);
+
+      return {
+        totalStudents,
+        unpaidStudents: unpaidDetails.length,
+        unpaidDetails: unpaidDetails.slice(0, 10), // Top 10 unpaid students
+      };
+    } catch (error) {
+      console.error("Error getting payment data:", error);
+      // Return fallback data if error
+      return {
+        totalStudents: 0,
+        unpaidStudents: 0,
+        unpaidDetails: [],
+      };
+    }
   },
 
   // Generate auto notification content
@@ -565,9 +728,10 @@ const notificationService = {
     try {
       const { userId, role, page = 1, limit = 10, type } = options;
 
-      // Build base filters
+      // Build base filters - only get web notifications
       let baseFilters = {
         isActive: true,
+        method: { $in: ["web", "both"] }, // Only web and both (web+email) notifications
       };
 
       if (type && type !== "") {
@@ -865,6 +1029,31 @@ const notificationService = {
     } catch (error) {
       throw new Error(
         `Failed to get notification recipients: ${error.message}`
+      );
+    }
+  },
+
+  // Delete auto notification setting
+  deleteAutoNotificationSetting: async (settingId) => {
+    try {
+      const { AutoNotificationSetting } = require("../../models");
+
+      const setting = await AutoNotificationSetting.findById(settingId);
+      if (!setting) {
+        throw new Error("Auto notification setting not found");
+      }
+
+      await AutoNotificationSetting.findByIdAndDelete(settingId);
+
+      return {
+        success: true,
+        message: "Auto notification setting deleted successfully",
+        deletedSetting: setting,
+      };
+    } catch (error) {
+      console.error("Error deleting auto notification setting:", error);
+      throw new Error(
+        `Failed to delete auto notification setting: ${error.message}`
       );
     }
   },

@@ -15,14 +15,14 @@ const {
   parentRouter,
   paymentRouter,
   advertisementRouter,
-  // notificationRouter,
+  notificationRouter,
   teacherWageRouter,
   statisticRouter,
   parentPaymentRequestRouter,
 } = require("./routes");
 
 const { connection, createAdminIfNotExist } = require("./config/dbConnect");
-// const notificationScheduler = require("./utils/notificationScheduler");
+const notificationScheduler = require("./utils/notificationScheduler");
 
 // Serve static files from uploads directory
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
@@ -51,7 +51,7 @@ app.use("/v1/api/students", studentRouter);
 app.use("/v1/api/parents", parentRouter);
 app.use("/v1/api/payments", paymentRouter);
 app.use("/v1/api/advertisements", advertisementRouter);
-// app.use("/v1/api/notifications", notificationRouter);
+app.use("/v1/api/notifications", notificationRouter);
 app.use("/v1/api/teacher-wages", teacherWageRouter);
 app.use("/v1/api/parent-payment-requests", parentPaymentRequestRouter);
 app.use("/v1/api/statistics", statisticRouter);
@@ -78,8 +78,8 @@ app.use((req, res) => {
     await connection();
     await createAdminIfNotExist();
 
-    // // Start notification scheduler
-    // notificationScheduler.start();
+    // Start notification scheduler
+    notificationScheduler.start();
 
     app.listen(port, () => {
       console.log(`App listening on http://localhost:${port}`);

@@ -22,6 +22,9 @@ router.get(
 );
 
 // Cập nhật thông tin học sinh (chỉ Admin)
+// NOTE: API này dùng để cập nhật thông tin cơ bản của học sinh
+// Để thêm lớp học cho học sinh với payment và enrollment logic đầy đủ,
+// nên sử dụng API POST /:studentId/enroll thay vì API này
 router.patch(
   "/:studentId",
   verifyRole(["Admin"]),
@@ -50,6 +53,10 @@ router.get(
 );
 
 // API chuyên biệt: Đăng ký học sinh vào lớp học với payment
+// NOTE: Đây là API chính để thêm lớp học cho học sinh
+// API này sẽ tự động xử lý việc thêm student vào class.studentList
+// và thêm classId vào student.classId, đồng thời tạo payment record
+// RECOMMENDED: Sử dụng API này thay vì PATCH /:studentId để thêm lớp học
 router.post(
   "/:studentId/enroll",
   verifyRole(["Admin"]),

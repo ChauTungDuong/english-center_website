@@ -433,6 +433,36 @@ const notificationController = {
       });
     }
   },
+
+  // Admin only - Delete auto notification setting
+  async deleteAutoNotificationSetting(req, res) {
+    try {
+      const { settingId } = req.params;
+
+      if (!settingId) {
+        return res.status(400).json({
+          success: false,
+          message: "Setting ID is required",
+        });
+      }
+
+      const result = await notificationService.deleteAutoNotificationSetting(
+        settingId
+      );
+
+      res.status(200).json({
+        success: true,
+        message: result.message,
+        data: result.deletedSetting,
+      });
+    } catch (error) {
+      console.error("Error deleting auto notification setting:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to delete auto notification setting",
+      });
+    }
+  },
 };
 
 module.exports = notificationController;
