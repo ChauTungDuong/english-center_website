@@ -1,5 +1,5 @@
 const advertisementService = require("../services/role_services/advertisementService");
-const memoryImageService = require("../services/memoryImageService");
+const cloudinaryService = require("../services/cloudinaryService");
 
 // Public access - no authentication required
 // GET /api/advertisements/public
@@ -113,37 +113,45 @@ const createAdvertisement = async (req, res) => {
       });
     }
 
-    // Process images from body (base64 data URLs) and uploaded files
-    let imageDataUrls = [];
+    // Xử lý ảnh: upload lên Cloudinary
+    let imageObjects = [];
 
-    // Handle images from request body (for JSON requests with base64 data URLs)
-    if (images && typeof images === "string") {
-      // Single base64 data URL from JSON
-      imageDataUrls = [images];
-    } else if (images && Array.isArray(images)) {
-      // Multiple base64 data URLs from JSON
-      imageDataUrls = [...images];
+    // 1. Ảnh upload dạng file (form-data)
+    if (files && files.length > 0) {
+      const uploaded = await cloudinaryService.uploadMultipleImages(files);
+      imageObjects.push(
+        ...uploaded.map((img) => ({
+          url: img.secure_url,
+          public_id: img.public_id,
+          format: img.format,
+        }))
+      );
     }
 
-    // Process uploaded image files (for form-data requests) - convert from buffer to base64
-    if (files && files.length > 0) {
-      try {
-        const convertedImages =
-          memoryImageService.convertMultipleFilesToBase64(files);
-        imageDataUrls.push(...convertedImages);
-      } catch (conversionError) {
-        console.error("Error converting images to base64:", conversionError);
-        // Continue with existing images, don't fail the entire request
+    // 2. Ảnh gửi qua body (base64 data url)
+    if (images) {
+      const base64Array = typeof images === "string" ? [images] : images;
+      for (const base64 of base64Array) {
+        if (base64 && base64.startsWith("data:image/")) {
+          const uploadRes = await cloudinaryService.uploadImageFromBase64(
+            base64
+          );
+          imageObjects.push({
+            url: uploadRes.secure_url,
+            public_id: uploadRes.public_id,
+            format: uploadRes.format,
+          });
+        }
       }
     }
 
     const advertisementData = {
       title,
       content,
-      images: imageDataUrls, // Store base64 data URLs
+      images: imageObjects,
       startDate: startDate ? new Date(startDate) : new Date(),
       endDate: endDate ? new Date(endDate) : null,
-      isActive: true, // Always default to true when creating
+      isActive: true,
     };
 
     const advertisement = await advertisementService.createAdvertisement(
@@ -192,51 +200,65 @@ const updateAdvertisement = async (req, res) => {
       });
     }
 
-    // Handle image updates
+    // Xử lý xóa ảnh (theo index hoặc public_id)
     let currentImages = [...(currentAd.images || [])];
-
-    // Handle image removal by index or by base64 content
     if (removeImages) {
       const imagesToRemove = Array.isArray(removeImages)
         ? removeImages
         : [removeImages];
-      for (const imageIdentifier of imagesToRemove) {
-        // Remove by index if it's a number, otherwise by content match
+      for (const identifier of imagesToRemove) {
+        // Nếu là số: xóa theo index
         if (
-          typeof imageIdentifier === "number" &&
-          imageIdentifier >= 0 &&
-          imageIdentifier < currentImages.length
+          typeof identifier === "number" &&
+          identifier >= 0 &&
+          identifier < currentImages.length
         ) {
-          currentImages.splice(imageIdentifier, 1);
-        } else {
-          currentImages = currentImages.filter(
-            (img) => img !== imageIdentifier
+          // Xóa trên Cloudinary
+          if (currentImages[identifier].public_id) {
+            await cloudinaryService.deleteImage(
+              currentImages[identifier].public_id
+            );
+          }
+          currentImages.splice(identifier, 1);
+        } else if (typeof identifier === "string") {
+          // Xóa theo public_id
+          const idx = currentImages.findIndex(
+            (img) => img.public_id === identifier
           );
+          if (idx !== -1) {
+            await cloudinaryService.deleteImage(currentImages[idx].public_id);
+            currentImages.splice(idx, 1);
+          }
         }
       }
     }
 
-    // Handle new images from body (base64 data URLs)
-    if (images) {
-      if (typeof images === "string") {
-        currentImages.push(images);
-      } else if (Array.isArray(images)) {
-        currentImages.push(...images);
-      }
+    // Thêm ảnh mới từ file upload
+    if (files && files.length > 0) {
+      const uploaded = await cloudinaryService.uploadMultipleImages(files);
+      currentImages.push(
+        ...uploaded.map((img) => ({
+          url: img.secure_url,
+          public_id: img.public_id,
+          format: img.format,
+        }))
+      );
     }
 
-    // Handle new image file uploads - convert from buffer to base64
-    if (files && files.length > 0) {
-      try {
-        const convertedImages =
-          memoryImageService.convertMultipleFilesToBase64(files);
-        currentImages.push(...convertedImages);
-      } catch (conversionError) {
-        console.error(
-          "Error converting new images to base64:",
-          conversionError
-        );
-        // Continue with existing images
+    // Thêm ảnh mới từ base64
+    if (images) {
+      const base64Array = typeof images === "string" ? [images] : images;
+      for (const base64 of base64Array) {
+        if (base64 && base64.startsWith("data:image/")) {
+          const uploadRes = await cloudinaryService.uploadImageFromBase64(
+            base64
+          );
+          currentImages.push({
+            url: uploadRes.secure_url,
+            public_id: uploadRes.public_id,
+            format: uploadRes.format,
+          });
+        }
       }
     }
 
@@ -248,8 +270,6 @@ const updateAdvertisement = async (req, res) => {
     if (startDate !== undefined) updateData.startDate = new Date(startDate);
     if (endDate !== undefined) updateData.endDate = new Date(endDate);
     if (isActive !== undefined) updateData.isActive = isActive;
-
-    // Always update images array (even if empty)
     updateData.images = currentImages;
 
     const updatedAdvertisement = await advertisementService.updateAdvertisement(
@@ -289,7 +309,15 @@ const deleteAdvertisement = async (req, res) => {
       });
     }
 
-    // Delete advertisement (base64 images are stored in database, no file cleanup needed)
+    // Xóa toàn bộ ảnh trên Cloudinary nếu có
+    if (Array.isArray(advertisement.images)) {
+      for (const img of advertisement.images) {
+        if (img.public_id) {
+          await cloudinaryService.deleteImage(img.public_id);
+        }
+      }
+    }
+
     await advertisementService.deleteAdvertisement(advertisementId);
 
     res.json({

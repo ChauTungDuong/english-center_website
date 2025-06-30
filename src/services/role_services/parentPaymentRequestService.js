@@ -5,7 +5,7 @@ const {
   Parent,
   Student,
 } = require("../../models");
-const imageService = require("../shared/imageService");
+const cloudinaryService = require("../cloudinaryService");
 
 const parentPaymentRequestService = {
   /**
@@ -30,20 +30,25 @@ const parentPaymentRequestService = {
           );
         }
 
-        // Xử lý file upload và convert sang Base64 sử dụng shared image service
-        let proofImageBase64 = "";
-        let proofImageMimeType = "";
-        let proofImageSize = 0;
+        // Xử lý file upload lên Cloudinary
+        let proofImageUrl = "";
+        let proofImagePublicId = "";
 
         if (uploadedFile) {
           try {
-            const imageComponents =
-              imageService.convertToBase64Components(uploadedFile);
-            proofImageBase64 = imageComponents.base64;
-            proofImageMimeType = imageComponents.mimeType;
-            proofImageSize = imageComponents.size;
+            // Upload ảnh lên Cloudinary
+            const uploadResult = await cloudinaryService.uploadImage(
+              uploadedFile,
+              {
+                folder: "payment-proofs",
+                filename: `payment_${paymentId}_${Date.now()}`,
+              }
+            );
+
+            proofImageUrl = uploadResult.secure_url;
+            proofImagePublicId = uploadResult.public_id;
           } catch (fileError) {
-            throw new Error(`Lỗi khi xử lý file: ${fileError.message}`);
+            throw new Error(`Lỗi khi upload ảnh: ${fileError.message}`);
           }
         }
 
@@ -95,7 +100,7 @@ const parentPaymentRequestService = {
           );
         }
 
-        // Create payment request with Base64 image data
+        // Create payment request with Cloudinary image URL
         const paymentRequest = await ParentPaymentRequest.create(
           [
             {
@@ -103,9 +108,8 @@ const parentPaymentRequestService = {
               paymentId,
               studentId: payment.studentId._id,
               amount,
-              proofImageBase64,
-              proofImageMimeType,
-              proofImageSize,
+              proofImageUrl,
+              proofImagePublicId,
               status: "pending",
               requestDate: new Date(),
             },
@@ -175,20 +179,17 @@ const parentPaymentRequestService = {
         .limit(limit);
       const total = await ParentPaymentRequest.countDocuments(filter);
 
-      // Format requests với ảnh Base64 cho Parent
+      // Format requests với ảnh Cloudinary cho Parent
       const formattedRequests = requests.map((request) => {
         const requestObj = request.toObject();
 
-        // Thêm imageDataUrl nếu có ảnh sử dụng shared image service
-        if (requestObj.proofImageBase64 && requestObj.proofImageMimeType) {
-          requestObj.imageDataUrl = imageService.convertComponentsToDataUrl(
-            requestObj.proofImageBase64,
-            requestObj.proofImageMimeType
+        // Thêm thumbnail URL nếu có ảnh từ Cloudinary
+        if (requestObj.proofImageUrl) {
+          requestObj.thumbnailUrl = cloudinaryService.getThumbnailUrl(
+            requestObj.proofImagePublicId,
+            { width: 300, height: 200 }
           );
         }
-
-        // Xóa Base64 raw data để giảm kích thước response (giữ imageDataUrl)
-        delete requestObj.proofImageBase64;
 
         return requestObj;
       });

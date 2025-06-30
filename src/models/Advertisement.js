@@ -6,10 +6,12 @@ const advertisementSchema = new mongoose.Schema(
     title: { type: String, required: true }, // Tiêu đề quảng cáo
     content: { type: String, required: true }, // Nội dung quảng cáo
 
-    // Images stored as base64 data URLs (similar to payment)
+    // Images stored as Cloudinary objects
     images: [
       {
-        type: String, // Base64 data URLs: "data:image/jpeg;base64,..."
+        url: { type: String, required: true }, // Cloudinary URL
+        public_id: { type: String, required: true }, // Cloudinary public_id
+        format: { type: String }, // Optional: image format (jpg, png, ...)
       },
     ],
 

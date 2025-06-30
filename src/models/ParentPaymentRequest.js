@@ -22,17 +22,18 @@ const parentPaymentRequestSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
-    proofImageBase64: {
+    // Cloudinary image info for proof image
+    proofImageUrl: {
       type: String,
       default: "",
     },
-    proofImageMimeType: {
+    proofImagePublicId: {
       type: String,
       default: "",
     },
-    proofImageSize: {
-      type: Number,
-      default: 0,
+    proofImageFormat: {
+      type: String,
+      default: "",
     },
     status: {
       type: String,
