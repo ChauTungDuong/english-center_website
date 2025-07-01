@@ -2,36 +2,54 @@ const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/authController");
 const userController = require("../controllers/userController");
-const { checkToken } = require("../middleware/authMiddleware");
+const { authenticate } = require("../core/middleware");
 
 // ========== AUTHENTICATION ROUTES ==========
 
-// Đăng nhập
+// Login
 router.post("/login", authController.login);
 
-// Đăng xuất (yêu cầu token)
-router.post("/logout", checkToken, authController.logout);
+// Register (if needed - might be admin only)
+// router.post("/register", authController.register);
+
+// Logout (requires token)
+router.post("/logout", authenticate, authController.logout);
 
 // ========== PASSWORD RESET ROUTES ==========
 
-// Yêu cầu reset password (gửi mã 6 số qua email)
-router.post("/forgot-password", authController.requestResetPassword);
+// Request password reset (send 6-digit code via email)
+router.post("/forgot-password", authController.forgotPassword);
 
-// Xác thực mã 6 số reset password (tùy chọn - để kiểm tra mã trước)
+// Verify reset code
 router.post("/verify-reset-code", authController.verifyResetCode);
 
-// Reset password bằng mã 6 số trực tiếp (phương thức chính)
+// Reset password with code directly
 router.post("/reset-password", authController.resetPasswordWithCode);
 
-// Đổi mật khẩu (cho user đã đăng nhập)
-router.post("/change-password", checkToken, authController.changePassword);
+// Verify reset code and get temporary token
+router.post(
+  "/verify-code-get-token",
+  authController.verifyResetCodeAndCreateToken
+);
+
+// Reset password with temporary token
+router.post("/reset-with-token", authController.resetPasswordWithToken);
+
+// Change password (for logged in users)
+router.post("/change-password", authenticate, authController.changePassword);
+
+// Refresh token
+router.post("/refresh-token", authController.refreshToken);
 
 // ========== USER PROFILE ROUTES ==========
 
-// Lấy thông tin profile người dùng hiện tại
-router.get("/profile", checkToken, userController.getProfile);
+// Get current user profile
+router.get("/profile", authenticate, userController.getProfile);
 
-// Người dùng bất kì sửa đổi thông tin cá nhân của mình
-router.patch("/profile", checkToken, userController.updateProfile);
+// Update current user profile
+router.patch("/profile", authenticate, userController.updateProfile);
+
+// Verify token (for frontend to check token validity)
+router.get("/verify-token", authController.verifyToken);
 
 module.exports = router;

@@ -1,15 +1,25 @@
 const express = require("express");
 const router = express.Router();
 const studentController = require("../controllers/studentController");
-const { verifyRole } = require("../middleware/authMiddleware");
+const { authenticate, authorize } = require("../core/middleware");
 
 // Các API cơ bản cho học sinh
 
 // Tạo học sinh mới (chỉ Admin)
-router.post("/", verifyRole(["Admin"]), studentController.createNewStudent);
+router.post(
+  "/",
+  authenticate,
+  authorize(["Admin"]),
+  studentController.createNewStudent
+);
 
 // Lấy danh sách tất cả học sinh (Admin có thể xem)
-router.get("/", verifyRole(["Admin"]), studentController.getAllStudents);
+router.get(
+  "/",
+  authenticate,
+  authorize(["Admin"]),
+  studentController.getAllStudents
+);
 
 // Lấy thông tin chi tiết một học sinh (bao gồm tất cả thông tin cần thiết)
 // Admin: xem được tất cả thông tin
@@ -17,7 +27,8 @@ router.get("/", verifyRole(["Admin"]), studentController.getAllStudents);
 // Parent: chỉ xem được thông tin của con mình
 router.get(
   "/:studentId",
-  verifyRole(["Admin", "Student", "Parent"]),
+  authenticate,
+  authorize(["Admin", "Student", "Parent"]),
   studentController.getStudentInfo
 );
 
@@ -27,28 +38,32 @@ router.get(
 // nên sử dụng API POST /:studentId/enroll thay vì API này
 router.patch(
   "/:studentId",
-  verifyRole(["Admin"]),
+  authenticate,
+  authorize(["Admin"]),
   studentController.updateStudent
 );
 
 // Xóa học sinh (chỉ Admin)
 router.delete(
   "/:studentId",
-  verifyRole(["Admin"]),
+  authenticate,
+  authorize(["Admin"]),
   studentController.deleteStudent
 );
 
 // Soft delete student (chỉ Admin)
 router.delete(
   "/:studentId/soft",
-  verifyRole(["Admin"]),
+  authenticate,
+  authorize(["Admin"]),
   studentController.softDeleteStudent
 );
 
 // API mới: Lấy danh sách lớp học có thể tham gia
 router.get(
   "/:studentId/available-classes",
-  verifyRole(["Admin"]),
+  authenticate,
+  authorize(["Admin"]),
   studentController.getAvailableClasses
 );
 
@@ -59,14 +74,16 @@ router.get(
 // RECOMMENDED: Sử dụng API này thay vì PATCH /:studentId để thêm lớp học
 router.post(
   "/:studentId/enroll",
-  verifyRole(["Admin"]),
+  authenticate,
+  authorize(["Admin"]),
   studentController.enrollToClasses
 );
 
 // API chuyên biệt: Loại học sinh khỏi lớp học
 router.post(
   "/:studentId/withdraw",
-  verifyRole(["Admin"]),
+  authenticate,
+  authorize(["Admin"]),
   studentController.withdrawFromClasses
 );
 

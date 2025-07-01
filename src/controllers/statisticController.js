@@ -1,4 +1,4 @@
-const statisticService = require("../services/role_services/statisticService");
+const statisticService = require("../services/StatisticService");
 
 const statisticController = {
   /**

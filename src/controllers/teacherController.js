@@ -1,4 +1,8 @@
-const teacherService = require("../services/role_services/teacherService");
+const TeacherService = require("../services/TeacherService");
+const { catchAsync } = require("../core/middleware");
+const { ApiResponse } = require("../core/utils");
+
+const teacherService = new TeacherService();
 
 const teacherController = {
   // Tạo giáo viên mới

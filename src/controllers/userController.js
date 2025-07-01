@@ -1,181 +1,198 @@
-require("dotenv").config();
-const { User, Teacher, Parent, Student } = require("../models");
-const { hashing, getModelByRole } = require("../services");
-const userService = require("../services/role_services/userService");
+const { catchAsync } = require("../core/middleware");
+const { ApiResponse } = require("../core/utils");
+const UserService = require("../services/UserService");
+
+const userService = new UserService();
 
 const userController = {
-  async getUserList(req, res) {
-    try {
-      const { page, limit, sort, email, name, role, isActive } = req.query;
+  // Get user list with pagination and filters (Admin only)
+  getUserList: catchAsync(async (req, res) => {
+    const { page, limit, role, isActive, search, sortBy, sortOrder } =
+      req.query;
 
-      // Build filter object
-      const filter = {};
-      if (email && email.trim())
-        filter.email = { $regex: email, $options: "i" };
-      if (name && name.trim()) filter.name = { $regex: name, $options: "i" };
-      if (role && role.trim()) filter.role = role;
+    const result = await userService.getAllUsers({
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 20,
+      role,
+      isActive:
+        isActive === "true" ? true : isActive === "false" ? false : undefined,
+      search,
+      sortBy,
+      sortOrder,
+    });
 
-      // Parse isActive để có logic rõ ràng: true, false, hoặc undefined
-      let parsedIsActive;
-      if (isActive === "true") {
-        parsedIsActive = true;
-      } else if (isActive === "false") {
-        parsedIsActive = false;
-      }
-      // Nếu isActive không có hoặc không phải "true"/"false" thì để undefined
+    return ApiResponse.success(res, result, "User list retrieved successfully");
+  }),
 
-      const options = {
-        page: page ? parseInt(page) : 1,
-        limit: limit ? parseInt(limit) : 10,
-        sort: sort ? JSON.parse(sort) : { createdAt: -1 },
-        isActive: parsedIsActive,
-      };
+  // Get current user profile
+  getProfile: catchAsync(async (req, res) => {
+    const { id: userId } = req.user;
+    const user = await userService.getUserById(userId);
 
-      const result = await userService.getAll(filter, options);
+    // Remove password from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
 
-      return res.status(200).json({
-        msg: "Lấy danh sách người dùng thành công",
-        data: result.users,
-        pagination: result.pagination,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi lấy danh sách người dùng",
-        error: error.message,
-      });
+    return ApiResponse.success(
+      res,
+      userResponse,
+      "Profile retrieved successfully"
+    );
+  }),
+
+  // Update current user profile
+  updateProfile: catchAsync(async (req, res) => {
+    const { id: userId } = req.user;
+
+    // Remove sensitive fields that users shouldn't update themselves
+    const { role, isActive, password, ...allowedUpdates } = req.body;
+
+    const user = await userService.updateUser(userId, allowedUpdates);
+
+    // Remove password from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    return ApiResponse.success(
+      res,
+      userResponse,
+      "Profile updated successfully"
+    );
+  }),
+
+  // Get user by ID (Admin only)
+  getUserById: catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const user = await userService.getUserById(id);
+
+    // Remove password from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    return ApiResponse.success(
+      res,
+      userResponse,
+      "User retrieved successfully"
+    );
+  }),
+
+  // Create new user (Admin only)
+  createUser: catchAsync(async (req, res) => {
+    const { role, ...userData } = req.body;
+    const user = await userService.createUser(userData, role);
+
+    // Remove password from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    return ApiResponse.success(
+      res,
+      userResponse,
+      "User created successfully",
+      201
+    );
+  }),
+
+  // Update user (Admin only)
+  updateUser: catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const user = await userService.updateUser(id, req.body);
+
+    // Remove password from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    return ApiResponse.success(res, userResponse, "User updated successfully");
+  }),
+
+  // Delete user (Admin only) - soft delete
+  deleteUser: catchAsync(async (req, res) => {
+    const { id } = req.params;
+    await userService.deleteUser(id);
+
+    return ApiResponse.success(res, null, "User deleted successfully");
+  }),
+
+  // Update user role (Admin only)
+  updateUserRole: catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    const user = await userService.updateUserRole(id, role);
+
+    // Remove password from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    return ApiResponse.success(
+      res,
+      userResponse,
+      "User role updated successfully"
+    );
+  }),
+
+  // Update user status (Admin only)
+  updateUserStatus: catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const { isActive } = req.body;
+
+    const user = await userService.updateUserStatus(id, isActive);
+
+    // Remove password from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    return ApiResponse.success(
+      res,
+      userResponse,
+      "User status updated successfully"
+    );
+  }),
+
+  // Get users by role
+  getUsersByRole: catchAsync(async (req, res) => {
+    const { role } = req.params;
+    const users = await userService.getUsersByRole(role);
+
+    return ApiResponse.success(res, users, `${role}s retrieved successfully`);
+  }),
+
+  // Check if email exists
+  checkEmailExists: catchAsync(async (req, res) => {
+    const { email } = req.query;
+    const { excludeUserId } = req.query;
+
+    const exists = await userService.checkEmailExists(email, excludeUserId);
+
+    return ApiResponse.success(res, { exists }, "Email existence checked");
+  }),
+
+  // Get user statistics (Admin only)
+  getUserStatistics: catchAsync(async (req, res) => {
+    const statistics = await userService.getUserStatistics();
+
+    return ApiResponse.success(res, statistics, "User statistics retrieved");
+  }),
+
+  // Change user password (Admin or self)
+  changeUserPassword: catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const { newPassword } = req.body;
+    const { id: currentUserId, role } = req.user;
+
+    // Check if user can change this password
+    if (role !== "Admin" && currentUserId !== id) {
+      return ApiResponse.error(
+        res,
+        "You can only change your own password",
+        403
+      );
     }
-  },
 
-  async getProfile(req, res) {
-    try {
-      const userId = req.user.id;
-      const user = await User.findById(userId).select("-password");
-      const model = getModelByRole(user.role);
-      let roleId = null;
-      let roleData = null;
-      if (model) {
-        roleData = await model.findOne({ userId: userId });
-        if (roleData) {
-          roleId = roleData._id;
-        }
-      }
-      const data = {
-        ...user.toObject(),
-        roleId: roleId,
-        roleData: roleData,
-      };
-      if (!user) {
-        return res.status(404).json({
-          msg: "Người dùng không tồn tại",
-        });
-      }
-      return res.status(200).json({
-        msg: "Lấy thông tin người dùng thành công",
-        data: data,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi lấy thông tin người dùng",
-        error: error.message,
-      });
-    }
-  },
-  async updateProfile(req, res) {
-    try {
-      const userId = req.user.id;
-      const { email, name, gender, phoneNumber, address } = req.body;
-      if (email) {
-        const existingUser = await User.findOne({
-          email: email,
-          _id: { $ne: userId },
-        });
-        if (existingUser || req.user.email === email) {
-          return res.status(400).json({
-            msg: "Email đã được sử dụng",
-          });
-        }
-      }
-      if (!["Nam", "Nữ", "Khác"].includes(gender) && gender !== undefined) {
-        return res.status(400).json({
-          msg: "Giới tính không hợp lệ",
-        });
-      }
-      const user = await User.findByIdAndUpdate(
-        userId,
-        { email, name, gender, phoneNumber, address },
-        { new: true, runValidators: true }
-      ).select("-password");
+    await userService.updateUser(id, { password: newPassword });
 
-      return res.status(200).json({
-        msg: "Cập nhật thông tin thành công",
-        data: user,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi cập nhật thông tin người dùng",
-        error: error.message,
-      });
-    }
-  },
-
-  // Admin: Toggle user status (active/inactive)
-  async toggleUserStatus(req, res) {
-    try {
-      // Chỉ admin mới có quyền
-      if (req.user.role !== "Admin") {
-        return res.status(403).json({
-          msg: "Chỉ Admin mới có quyền thực hiện thao tác này",
-        });
-      }
-
-      const { userId } = req.params;
-      let { isActive } = req.body;
-
-      // Convert string to boolean if needed
-      if (typeof isActive === "string") {
-        isActive = isActive.toLowerCase() === "true";
-      }
-
-      if (typeof isActive !== "boolean") {
-        return res.status(400).json({
-          msg: "isActive phải là boolean (true/false) hoặc string ('true'/'false')",
-        });
-      }
-
-      const user = await User.findById(userId);
-      if (!user) {
-        return res.status(404).json({
-          msg: "Không tìm thấy user",
-        });
-      }
-
-      // Không cho phép vô hiệu hóa admin
-      if (user.role === "Admin" && !isActive) {
-        return res.status(403).json({
-          msg: "Không thể vô hiệu hóa tài khoản Admin",
-        });
-      }
-
-      await User.findByIdAndUpdate(userId, { isActive });
-
-      return res.status(200).json({
-        msg: `${isActive ? "Kích hoạt" : "Vô hiệu hóa"} user thành công`,
-        user: {
-          id: user._id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          isActive,
-        },
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi cập nhật trạng thái user",
-        error: error.message,
-      });
-    }
-  },
-
-  // ...existing code...
+    return ApiResponse.success(res, null, "Password changed successfully");
+  }),
 };
+
 module.exports = userController;

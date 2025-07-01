@@ -1,21 +1,23 @@
 const express = require("express");
 const router = express.Router();
 const paymentController = require("../controllers/paymentController");
-const { verifyRole } = require("../middleware/authMiddleware");
+const { authenticate, authorize } = require("../core/middleware");
 
 // ========== ESSENTIAL APIs ONLY ==========
 
 // Payment summary and statistics (Admin thống kê tài chính)
 router.get(
   "/summary/overview",
-  verifyRole(["Admin"]),
+  authenticate,
+  authorize(["Admin"]),
   paymentController.getPaymentSummary
 );
 
 // Student-specific payment routes (xem payment của học sinh)
 router.get(
   "/students/:studentId/payments",
-  verifyRole(["Admin", "Student", "Parent"]),
+  authenticate,
+  authorize(["Admin", "Student", "Parent"]),
   paymentController.getStudentPayments
 );
 

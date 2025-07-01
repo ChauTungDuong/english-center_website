@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const teacherWageController = require("../controllers/teacherWageController");
-const { verifyRole } = require("../middleware/authMiddleware");
+const { authenticate, authorize } = require("../core/middleware");
 
 // ========== UNIFIED STATISTICS & LISTING API ==========
 
@@ -10,7 +10,8 @@ const { verifyRole } = require("../middleware/authMiddleware");
 // Can return: only statistics, only list, or both (default)
 router.get(
   "/",
-  verifyRole(["Admin"]),
+  authenticate,
+  authorize(["Admin"]),
   teacherWageController.getUnifiedWageStatistics
 );
 
@@ -19,7 +20,8 @@ router.get(
 // API: Tính lương tự động cho tất cả giáo viên trong tháng/năm
 router.post(
   "/calculate",
-  verifyRole(["Admin"]),
+  authenticate,
+  authorize(["Admin"]),
   teacherWageController.calculateMonthlyWages
 );
 
@@ -28,14 +30,16 @@ router.post(
 // API: Admin xem chi tiết 1 wage record
 router.get(
   "/:teacherWageId",
-  verifyRole(["Admin"]),
+  authenticate,
+  authorize(["Admin"]),
   teacherWageController.getWageDetail
 );
 
 // API: Admin thanh toán cho 1 wage record cụ thể
 router.patch(
   "/:teacherWageId/process",
-  verifyRole(["Admin"]),
+  authenticate,
+  authorize(["Admin"]),
   teacherWageController.processWagePayment
 );
 
@@ -44,7 +48,8 @@ router.patch(
 // API: Teacher xem lương của mình (cả đã trả và chưa trả)
 router.get(
   "/teacher/:teacherId",
-  verifyRole(["Admin", "Teacher"]),
+  authenticate,
+  authorize(["Admin", "Teacher"]),
   teacherWageController.getTeacherWagesByTeacher
 );
 
@@ -53,14 +58,16 @@ router.get(
 // API: Admin cập nhật wage record (chỉnh sửa bảng lương)
 router.patch(
   "/:teacherWageId",
-  verifyRole(["Admin"]),
+  authenticate,
+  authorize(["Admin"]),
   teacherWageController.updateWageRecord
 );
 
 // API: Admin xóa wage record (nếu cần)
 router.delete(
   "/:teacherWageId",
-  verifyRole(["Admin"]),
+  authenticate,
+  authorize(["Admin"]),
   teacherWageController.deleteWageRecord
 );
 

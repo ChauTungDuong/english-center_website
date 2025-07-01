@@ -1,63 +1,42 @@
-const paymentService = require("../services/role_services/paymentService");
+const PaymentService = require("../services/PaymentService");
+const { catchAsync } = require("../core/middleware");
+const { ApiResponse } = require("../core/utils");
+
+const paymentService = new PaymentService();
 
 const paymentController = {
-  // API: Payment summary and statistics (Admin thống kê tài chính)
-  async getPaymentSummary(req, res) {
-    try {
-      const { month, year, startDate, endDate } = req.query;
+  // Get payment summary and statistics (Admin financial statistics)
+  getPaymentSummary: catchAsync(async (req, res) => {
+    const { month, year, startDate, endDate } = req.query;
+    const filter = { month, year, startDate, endDate };
 
-      const summary = await paymentService.getPaymentSummary({
-        month,
-        year,
-        startDate,
-        endDate,
-      });
+    const summary = await paymentService.getPaymentSummary(filter);
+    ApiResponse.success(res, "Lấy thống kê thanh toán thành công", summary);
+  }),
 
-      return res.status(200).json({
-        msg: "Lấy tổng quan thanh toán thành công",
-        data: summary,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi lấy tổng quan thanh toán",
-        error: error.message,
-      });
-    }
-  },
+  // Get student payments
+  getStudentPayments: catchAsync(async (req, res) => {
+    const { studentId } = req.params;
+    const { page, limit, status, month, year } = req.query;
 
-  // API: Student-specific payment routes (xem payment của học sinh)
-  async getStudentPayments(req, res) {
-    try {
-      const { studentId } = req.params;
-      const { month, year, status } = req.query;
+    const options = {
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 10,
+      status,
+      month: month ? parseInt(month) : undefined,
+      year: year ? parseInt(year) : undefined,
+    };
 
-      // Kiểm tra quyền truy cập
-      if (
-        (req.user.role === "Student" || req.user.role === "Parent") &&
-        req.user.studentId?.toString() !== studentId
-      ) {
-        return res.status(403).json({
-          msg: "Bạn chỉ có thể xem thông tin thanh toán của chính mình",
-        });
-      }
-
-      const payments = await paymentService.getStudentPayments(studentId, {
-        month,
-        year,
-        status,
-      });
-
-      return res.status(200).json({
-        msg: "Lấy lịch sử thanh toán học sinh thành công",
-        data: payments,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi lấy lịch sử thanh toán học sinh",
-        error: error.message,
-      });
-    }
-  },
+    const payments = await paymentService.getStudentPayments(
+      studentId,
+      options
+    );
+    ApiResponse.success(
+      res,
+      "Lấy danh sách thanh toán học sinh thành công",
+      payments
+    );
+  }),
 };
 
 module.exports = paymentController;

@@ -1,188 +1,307 @@
+const { BaseService } = require("../../core/utils");
+const {
+  ValidationError,
+  NotFoundError,
+  ConflictError,
+} = require("../../core/errors/AppError");
 const User = require("../../models/User");
 const { hashing } = require("../hashPassGen");
-const { userUpdateFields } = require("./updateFields");
-const userService = {
-  async create(userData, userRole, session = null) {
-    try {
-      const { email, passwordBeforeHash, name, gender, phoneNumber, address } =
-        userData;
-      const role = userRole;
-      // Kiểm tra email đã tồn tại
-      if (!email || !passwordBeforeHash || !name) {
-        throw new Error("Thiếu thông tin bắt buộc: email, password hoặc name");
-      }
 
-      if (!["Student", "Teacher", "Parent", "Admin"].includes(role)) {
-        throw new Error("Vai trò không hợp lệ");
-      }
-
-      const existingUser = session
-        ? await User.findOne({ email: email }).session(session)
-        : await User.findOne({ email });
-
-      if (existingUser) {
-        throw new Error("Email đã tồn tại");
-      }
-
-      const createData = {
-        email: email,
-        password: await hashing(passwordBeforeHash),
-        name: name,
-        gender: gender,
-        phoneNumber: phoneNumber,
-        address: address,
-        role: role,
-      };
-      if (session) {
-        const user = await User.create([createData], { session });
-        return user[0];
-      } else {
-        return await User.create(createData);
-      }
-    } catch (error) {
-      throw new Error(`Lỗi khi tạo người dùng: ${error.message}`);
-    }
-  },
-
-  async getUserById(userId, session = null) {
-    try {
-      if (!userId) {
-        throw new Error("Thiếu thông tin bắt buộc: userId");
-      }
-      const user = session
-        ? await User.findById(userId).session(session)
-        : await User.findById(userId);
-      if (!user) {
-        throw new Error("Không tìm thấy người dùng");
-      }
-      return user;
-    } catch (error) {
-      throw new Error(`Lỗi khi lấy người dùng: ${error.message}`);
-    }
-  },
-
-  async update(userId, updateData, session = null) {
-    try {
-      if (!userId || !updateData) {
-        throw new Error("Thiếu thông tin bắt buộc: userId hoặc updateData");
-      }
-      const updateFields = userUpdateFields(updateData);
-      const options = { new: true, runValidators: true };
-      if (session) {
-        options.session = session;
-      }
-      if (updateFields.email) {
-        const existingUser = session
-          ? await User.findOne({
-              email: updateFields.email,
-              _id: { $ne: userId },
-            }).session(session)
-          : await User.findOne({
-              email: updateFields.email,
-              _id: { $ne: userId },
-            });
-
-        if (existingUser) {
-          throw new Error("Email đã được sử dụng");
-        }
-      }
-      return await User.findByIdAndUpdate(
-        userId,
-        { $set: updateFields },
-        options
-      );
-    } catch (error) {
-      throw new Error(`Lỗi khi cập nhật người dùng: ${error.message}`);
-    }
-  },
-
-  async delete(userId, session = null) {
-    try {
-      if (session) {
-        return await User.findByIdAndDelete(userId, { session });
-      } else {
-        return await User.findByIdAndDelete(userId);
-      }
-    } catch (error) {
-      throw new Error(`Lỗi khi xóa người dùng: ${error.message}`);
-    }
-  },
+class UserService extends BaseService {
+  constructor() {
+    super(User);
+  }
 
   /**
-   * Lấy danh sách tất cả người dùng với phân trang và filter
-   * @param {Object} filter - Điều kiện filter (optional)
-   * @param {Object} options - Tùy chọn pagination, sort (optional)
-   * @returns {Object} Danh sách người dùng và thông tin phân trang
+   * Create new user
    */
-  async getAll(filter = {}, options = {}) {
-    try {
-      const { page = 1, limit = 10, sort, isActive } = options;
+  async createUser(userData, userRole, session = null) {
+    const { email, passwordBeforeHash, name, gender, phoneNumber, address } =
+      userData;
+    const role = userRole;
 
-      const skip = (page - 1) * limit;
-
-      // Thêm filter cho isActive nếu được chỉ định
-      const finalFilter = { ...filter };
-      if (isActive !== undefined) {
-        finalFilter.isActive = isActive;
-      }
-
-      // Thực hiện query với filter và pagination
-      const users = await User.find(finalFilter)
-        .select("-password") // Loại bỏ password khỏi kết quả
-        .sort(sort)
-        .skip(skip)
-        .limit(limit)
-        .lean();
-
-      // Fetch role data cho tất cả users
-      if (users.length > 0) {
-        const { Student, Teacher, Parent } = require("../../models");
-        const userIds = users.map((user) => user._id);
-
-        // Parallel queries cho tất cả role types
-        const [students, teachers, parents] = await Promise.all([
-          Student.find({ userId: { $in: userIds } })
-            .select("userId")
-            .lean(),
-          Teacher.find({ userId: { $in: userIds } })
-            .select("userId")
-            .lean(),
-          Parent.find({ userId: { $in: userIds } })
-            .select("userId")
-            .lean(),
-        ]);
-
-        // Tạo lookup map
-        const roleMap = {};
-        students.forEach((s) => (roleMap[s.userId] = s._id));
-        teachers.forEach((t) => (roleMap[t.userId] = t._id));
-        parents.forEach((p) => (roleMap[p.userId] = p._id));
-
-        // Thêm roleId vào users
-        users.forEach((user) => {
-          user.roleId = roleMap[user._id] || null;
-        });
-      }
-
-      // Đếm tổng số documents
-      const totalUsers = await User.countDocuments(finalFilter);
-      const totalPages = Math.ceil(totalUsers / limit);
-
-      return {
-        users,
-        pagination: {
-          currentPage: page,
-          totalPages,
-          totalItems: totalUsers,
-          itemsPerPage: limit,
-          hasNext: page < totalPages,
-          hasPrev: page > 1,
-        },
-      };
-    } catch (error) {
-      throw new Error(`Lỗi khi lấy danh sách người dùng: ${error.message}`);
+    // Validate required fields
+    if (!email || !passwordBeforeHash || !name) {
+      throw new ValidationError(
+        "Missing required fields: email, password, or name"
+      );
     }
-  },
-};
 
-module.exports = userService;
+    if (!["Student", "Teacher", "Parent", "Admin"].includes(role)) {
+      throw new ValidationError("Invalid role");
+    }
+
+    // Check if email already exists
+    const existingUser = session
+      ? await User.findOne({ email }).session(session)
+      : await User.findOne({ email });
+
+    if (existingUser) {
+      throw new ConflictError("Email already exists");
+    }
+
+    const createData = {
+      email,
+      password: await hashing(passwordBeforeHash),
+      name,
+      gender,
+      phoneNumber,
+      address,
+      role,
+      isActive: true,
+    };
+
+    if (session) {
+      const user = await User.create([createData], { session });
+      return user[0];
+    } else {
+      return await this.create(createData);
+    }
+  }
+
+  /**
+   * Get user by ID
+   */
+  async getUserById(userId, session = null) {
+    if (!userId) {
+      throw new ValidationError("User ID is required");
+    }
+
+    const user = session
+      ? await User.findById(userId).session(session)
+      : await User.findById(userId);
+
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+
+    return user;
+  }
+
+  /**
+   * Update user information
+   */
+  async updateUser(userId, updateData, session = null) {
+    if (!userId) {
+      throw new ValidationError("User ID is required");
+    }
+
+    // Remove sensitive fields that shouldn't be updated directly
+    const { password, role, ...allowedUpdates } = updateData;
+
+    // If password needs to be updated, hash it
+    if (password) {
+      allowedUpdates.password = await hashing(password);
+    }
+
+    const user = session
+      ? await User.findByIdAndUpdate(userId, allowedUpdates, {
+          new: true,
+          runValidators: true,
+          session,
+        })
+      : await User.findByIdAndUpdate(userId, allowedUpdates, {
+          new: true,
+          runValidators: true,
+        });
+
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+
+    return user;
+  }
+
+  /**
+   * Delete user (soft delete - set isActive to false)
+   */
+  async deleteUser(userId, session = null) {
+    if (!userId) {
+      throw new ValidationError("User ID is required");
+    }
+
+    const user = session
+      ? await User.findByIdAndUpdate(
+          userId,
+          { isActive: false },
+          { new: true, session }
+        )
+      : await User.findByIdAndUpdate(
+          userId,
+          { isActive: false },
+          { new: true }
+        );
+
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+
+    return user;
+  }
+
+  /**
+   * Get all users with pagination and filters
+   */
+  async getAllUsers(options = {}) {
+    const {
+      page = 1,
+      limit = 20,
+      role,
+      isActive,
+      search,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = options;
+
+    const filter = {};
+
+    if (role) filter.role = role;
+    if (isActive !== undefined) filter.isActive = isActive;
+
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { phoneNumber: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const sort = {};
+    sort[sortBy] = sortOrder === "desc" ? -1 : 1;
+
+    return await this.findWithPagination(filter, {
+      page,
+      limit,
+      sort,
+      select: "-password", // Exclude password from results
+    });
+  }
+
+  /**
+   * Get users by role
+   */
+  async getUsersByRole(role) {
+    if (!role) {
+      throw new ValidationError("Role is required");
+    }
+
+    return await User.find({ role, isActive: true }).select("-password");
+  }
+
+  /**
+   * Check if email exists
+   */
+  async checkEmailExists(email, excludeUserId = null) {
+    const filter = { email };
+    if (excludeUserId) {
+      filter._id = { $ne: excludeUserId };
+    }
+
+    const user = await User.findOne(filter);
+    return !!user;
+  }
+
+  /**
+   * Get user by email
+   */
+  async getUserByEmail(email) {
+    if (!email) {
+      throw new ValidationError("Email is required");
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+
+    return user;
+  }
+
+  /**
+   * Update user role (Admin only)
+   */
+  async updateUserRole(userId, newRole, session = null) {
+    if (!userId || !newRole) {
+      throw new ValidationError("User ID and new role are required");
+    }
+
+    if (!["Student", "Teacher", "Parent", "Admin"].includes(newRole)) {
+      throw new ValidationError("Invalid role");
+    }
+
+    const user = session
+      ? await User.findByIdAndUpdate(
+          userId,
+          { role: newRole },
+          { new: true, session }
+        )
+      : await User.findByIdAndUpdate(userId, { role: newRole }, { new: true });
+
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+
+    return user;
+  }
+
+  /**
+   * Update user status (Admin only)
+   */
+  async updateUserStatus(userId, isActive, session = null) {
+    if (!userId || isActive === undefined) {
+      throw new ValidationError("User ID and status are required");
+    }
+
+    const user = session
+      ? await User.findByIdAndUpdate(
+          userId,
+          { isActive },
+          { new: true, session }
+        )
+      : await User.findByIdAndUpdate(userId, { isActive }, { new: true });
+
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+
+    return user;
+  }
+
+  /**
+   * Get user statistics
+   */
+  async getUserStatistics() {
+    const stats = await User.aggregate([
+      {
+        $group: {
+          _id: "$role",
+          count: { $sum: 1 },
+          active: {
+            $sum: {
+              $cond: ["$isActive", 1, 0],
+            },
+          },
+        },
+      },
+    ]);
+
+    const totalUsers = await User.countDocuments({});
+    const activeUsers = await User.countDocuments({ isActive: true });
+
+    return {
+      total: totalUsers,
+      active: activeUsers,
+      inactive: totalUsers - activeUsers,
+      byRole: stats.reduce((acc, stat) => {
+        acc[stat._id] = {
+          total: stat.count,
+          active: stat.active,
+          inactive: stat.count - stat.active,
+        };
+        return acc;
+      }, {}),
+    };
+  }
+}
+
+module.exports = new UserService();

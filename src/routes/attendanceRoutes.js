@@ -1,34 +1,39 @@
 const express = require("express");
 const router = express.Router();
 const attendanceController = require("../controllers/attendanceController");
-const { verifyRole } = require("../middleware/authMiddleware");
+const { authenticate, authorize } = require("../core/middleware");
 
 // === 4 API chính cho Attendance Management ===
 
 // 1. Tạo buổi điểm danh mới cho lớp (Admin và Teacher)
 router.post(
   "/class/:classId",
-  verifyRole(["Admin", "Teacher"]),
+  authenticate,
+  authorize(["Admin", "Teacher"]),
   attendanceController.createClassAttendance
 );
 
 // 2. Thực hiện điểm danh theo buổi (Admin và Teacher)
 router.patch(
   "/:attendanceId/mark",
-  verifyRole(["Admin", "Teacher"]),
+  authenticate,
+  authorize(["Admin", "Teacher"]),
   attendanceController.markAttendance
 );
+
 // 3. Xóa buổi điểm danh (chỉ Admin)
 router.delete(
   "/:attendanceId",
-  verifyRole(["Admin"]),
+  authenticate,
+  authorize(["Admin"]),
   attendanceController.deleteAttendance
 );
 
 // 4. Lấy danh sách các buổi điểm danh của 1 lớp
 router.get(
   "/class/:classId",
-  verifyRole(["Admin", "Teacher"]),
+  authenticate,
+  authorize(["Admin", "Teacher"]),
   attendanceController.getClassAttendances
 );
 

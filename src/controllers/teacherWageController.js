@@ -1,4 +1,4 @@
-const teacherWageService = require("../services/role_services/teacherWageService");
+const teacherWageService = require("../services/TeacherWageService");
 
 const teacherWageController = {
   // ========== UNIFIED STATISTICS & LISTING API ==========

@@ -1,114 +1,92 @@
-const attendanceService = require("../services/role_services/attendanceService");
+const AttendanceService = require("../services/AttendanceService");
+const { catchAsync } = require("../core/middleware");
+const { ApiResponse } = require("../core/utils");
+
+const attendanceService = new AttendanceService();
 
 const attendanceController = {
   // 1. Tạo buổi điểm danh mới cho lớp
-  async createClassAttendance(req, res) {
-    try {
-      const { classId } = req.params;
-      const { date, lessonNumber } = req.body;
+  createClassAttendance: catchAsync(async (req, res) => {
+    const { classId } = req.params;
+    const { date, lessonNumber } = req.body;
 
-      const attendanceData = {
-        classId,
-        date,
-        lessonNumber,
-      };
+    const attendanceData = {
+      classId,
+      date,
+      lessonNumber,
+    };
 
-      const newAttendance = await attendanceService.create(attendanceData);
-      return res.status(201).json({
-        msg: "Tạo buổi điểm danh thành công",
-        data: newAttendance,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi tạo buổi điểm danh",
-        error: error.message,
-      });
-    }
-  },
+    const newAttendance = await attendanceService.createClassAttendance(
+      attendanceData
+    );
+    ApiResponse.success(
+      res,
+      "Tạo buổi điểm danh thành công",
+      newAttendance,
+      201
+    );
+  }),
+
   // 2. Thực hiện điểm danh theo buổi (đánh dấu các học sinh)
-  async markAttendance(req, res) {
-    try {
-      const { attendanceId } = req.params;
-      const { studentsAttendance, students } = req.body;
+  markAttendance: catchAsync(async (req, res) => {
+    const { attendanceId } = req.params;
+    const { studentsAttendance, students } = req.body;
 
-      // Support both field names for backward compatibility
-      const studentData = studentsAttendance || students;
+    // Support both field names for backward compatibility
+    const studentData = studentsAttendance || students;
 
-      if (!studentData) {
-        return res.status(400).json({
-          msg: "Thiếu thông tin điểm danh học sinh",
-          error: "Vui lòng cung cấp studentsAttendance hoặc students",
-        });
-      }
-
-      const attendance = await attendanceService.getById(attendanceId);
-      if (!attendance) {
-        return res.status(404).json({
-          msg: "Không tìm thấy buổi điểm danh",
-        });
-      }
-
-      // Use markClassAttendance method with proper business logic
-      const classId = attendance.classId._id || attendance.classId;
-      const updatedAttendance = await attendanceService.markClassAttendance(
-        classId,
-        attendance.date,
-        studentData,
-        attendance.lessonNumber
+    if (!studentData) {
+      return ApiResponse.error(
+        res,
+        "Thiếu thông tin điểm danh học sinh - Vui lòng cung cấp studentsAttendance hoặc students",
+        400
       );
+    }
 
-      return res.status(200).json({
-        msg: "Điểm danh thành công",
-        data: updatedAttendance,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi thực hiện điểm danh",
-        error: error.message,
-      });
+    const attendance = await attendanceService.getById(attendanceId);
+    if (!attendance) {
+      return ApiResponse.error(res, "Không tìm thấy buổi điểm danh", 404);
     }
-  },
+
+    // Use markClassAttendance method with proper business logic
+    const classId = attendance.classId._id || attendance.classId;
+    const updatedAttendance = await attendanceService.markClassAttendance(
+      classId,
+      attendance.date,
+      studentData,
+      attendance.lessonNumber
+    );
+
+    ApiResponse.success(res, "Điểm danh thành công", updatedAttendance);
+  }),
+
   // 3. Xóa điểm danh
-  async deleteAttendance(req, res) {
-    try {
-      const result = await attendanceService.delete(req.params.attendanceId);
-      return res.status(200).json({
-        msg: result.message,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi xóa điểm danh",
-        error: error.message,
-      });
-    }
-  },
+  deleteAttendance: catchAsync(async (req, res) => {
+    const result = await attendanceService.deleteById(req.params.attendanceId);
+    ApiResponse.success(res, result.message || "Xóa điểm danh thành công");
+  }),
 
   // 4. Lấy danh sách các buổi điểm danh của 1 lớp
-  async getClassAttendances(req, res) {
-    try {
-      const { classId } = req.params;
-      const { page, limit, startDate, endDate } = req.query;
+  getClassAttendances: catchAsync(async (req, res) => {
+    const { classId } = req.params;
+    const { page, limit, startDate, endDate } = req.query;
 
-      const options = {
-        page: page ? parseInt(page) : 1,
-        limit: limit ? parseInt(limit) : 10,
-        startDate,
-        endDate,
-      };
+    const options = {
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 10,
+      startDate,
+      endDate,
+    };
 
-      const result = await attendanceService.getByClass(classId, options);
-      return res.status(200).json({
-        msg: "Lấy danh sách điểm danh lớp thành công",
-        data: result.attendances,
-        pagination: result.pagination,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi lấy danh sách điểm danh lớp",
-        error: error.message,
-      });
-    }
-  },
+    const result = await attendanceService.getAttendancesByClass(
+      classId,
+      options
+    );
+    ApiResponse.success(res, "Lấy danh sách điểm danh lớp thành công", {
+      attendances: result.attendances,
+      pagination: result.pagination,
+    });
+  }),
 };
 
 module.exports = attendanceController;

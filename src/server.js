@@ -23,6 +23,7 @@ const {
 
 const { connection, createAdminIfNotExist } = require("./config/dbConnect");
 const notificationScheduler = require("./utils/notificationScheduler");
+const { globalErrorHandler, handleNotFound } = require("./core/middleware");
 
 // Serve static files from uploads directory
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
@@ -43,35 +44,27 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes với prefix /v1/api/
 app.use("/v1/api", router);
-app.use("/v1/api/users", userRouter);
-app.use("/v1/api/classes", classRouter);
-app.use("/v1/api/attendance", attendanceRouter);
-app.use("/v1/api/teachers", teacherRouter);
-app.use("/v1/api/students", studentRouter);
-app.use("/v1/api/parents", parentRouter);
-app.use("/v1/api/payments", paymentRouter);
-app.use("/v1/api/advertisements", advertisementRouter);
-app.use("/v1/api/notifications", notificationRouter);
-app.use("/v1/api/teacher-wages", teacherWageRouter);
-app.use("/v1/api/parent-payment-requests", parentPaymentRequestRouter);
-app.use("/v1/api/statistics", statisticRouter);
+if (studentRouter) app.use("/v1/api/students", studentRouter);
+if (attendanceRouter) app.use("/v1/api/attendance", attendanceRouter);
+if (classRouter) app.use("/v1/api/classes", classRouter);
+if (parentRouter) app.use("/v1/api/parents", parentRouter);
+if (teacherRouter) app.use("/v1/api/teachers", teacherRouter);
+if (userRouter) app.use("/v1/api/users", userRouter);
+if (paymentRouter) app.use("/v1/api/payments", paymentRouter);
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || "Internal Server Error",
-  });
-});
+// Enable all working routes
+if (advertisementRouter) app.use("/v1/api/advertisements", advertisementRouter);
+if (notificationRouter) app.use("/v1/api/notifications", notificationRouter);
+if (teacherWageRouter) app.use("/v1/api/teacher-wages", teacherWageRouter);
+if (parentPaymentRequestRouter)
+  app.use("/v1/api/parent-payment-requests", parentPaymentRequestRouter);
+if (statisticRouter) app.use("/v1/api/statistics", statisticRouter);
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "API endpoint not found",
-  });
-});
+// 404 handler - must come before error handler
+app.use(handleNotFound);
+
+// Global error handling middleware - must be last
+app.use(globalErrorHandler);
 
 (async () => {
   try {

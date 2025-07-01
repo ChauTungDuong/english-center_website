@@ -1,233 +1,110 @@
-const classService = require("../services/role_services/classService");
+const ClassService = require("../services/ClassService");
+const { catchAsync } = require("../core/middleware");
+const { ApiResponse } = require("../core/utils");
+
+const classService = new ClassService();
 
 const classController = {
-  async createNewClass(req, res) {
-    try {
-      const newClass = await classService.create(req.body);
-      return res.status(201).json({
-        msg: "Tạo lớp học thành công",
-        data: newClass,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi tạo lớp học",
-        error: error.message,
-      });
+  createNewClass: catchAsync(async (req, res) => {
+    const newClass = await classService.create(req.body);
+    ApiResponse.success(res, "Tạo lớp học thành công", newClass, 201);
+  }),
+
+  getClassInfo: catchAsync(async (req, res) => {
+    const { include } = req.query;
+    const includeOptions = {
+      schedule: include && include.includes("schedule"),
+      students: include && include.includes("students"),
+      attendance: include && include.includes("attendance"),
+      detailed: include && include.includes("detailed"),
+    };
+
+    if (!req.params.classId) {
+      return ApiResponse.error(res, "Thiếu thông tin ID lớp học", 400);
     }
-  },
-  async getClassInfo(req, res) {
-    try {
-      const { include } = req.query;
-      const includeOptions = {
-        schedule: include && include.includes("schedule"),
-        students: include && include.includes("students"),
-        attendance: include && include.includes("attendance"),
-        detailed: include && include.includes("detailed"),
-      };
 
-      if (!req.params.classId) {
-        return res.status(400).json({
-          msg: "Thiếu thông tin ID lớp học",
-        });
-      }
+    // Kiểm tra quyền: Teacher chỉ được xem lớp mình dạy
+    if (req.user && req.user.role === "Teacher") {
+      const hasPermission = await classService.checkTeacherClassPermission(
+        req.user.teacherId,
+        req.params.classId
+      );
 
-      // Kiểm tra quyền: Teacher chỉ được xem lớp mình dạy
-      if (req.user.role === "Teacher") {
-        const hasPermission = await classService.checkTeacherClassPermission(
-          req.user.teacherId,
-          req.params.classId
+      if (!hasPermission) {
+        return ApiResponse.error(
+          res,
+          "Bạn không có quyền xem lớp học này",
+          403
         );
-
-        if (!hasPermission) {
-          return res.status(403).json({
-            msg: "Bạn không có quyền xem lớp học này",
-          });
-        }
       }
-
-      const classData = await classService.getById(
-        req.params.classId,
-        includeOptions
-      );
-
-      return res.status(200).json({
-        msg: "Lấy thông tin lớp học thành công",
-        data: classData,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi lấy thông tin lớp học",
-        error: error.message,
-      });
     }
-  },
 
-  // ✅ REMOVED: Schedule information is now included via ?include=schedule parameter
-  // in the getClassInfo method above, eliminating the need for a separate endpoint
-  //
-  // async getClassSchedule(req, res) { ... }
-  async updateClass(req, res) {
-    try {
-      const { classId } = req.params;
-      const updates = req.body;
+    const classData = await classService.getDetailedById(
+      req.params.classId,
+      includeOptions
+    );
 
-      // 🔥 Xử lý thêm students với discount
-      if (updates.studentsWithDiscount) {
-        const result = await classService.addStudentsWithDiscount(
-          classId,
-          updates.studentsWithDiscount
-        );
+    ApiResponse.success(res, "Lấy thông tin lớp học thành công", classData);
+  }),
 
-        return res.status(200).json({
-          msg: "Thêm học sinh vào lớp với discount thành công",
-          data: result,
-        });
-      }
+  updateClass: catchAsync(async (req, res) => {
+    const updatedClass = await classService.updateById(
+      req.params.classId,
+      req.body
+    );
+    ApiResponse.success(res, "Cập nhật lớp học thành công", updatedClass);
+  }),
 
-      // Logic update class bình thường
-      const updatedClass = await classService.update(
-        req.params.classId,
-        req.body
-      );
-      return res.status(200).json({
-        msg: "Cập nhật thông tin lớp học thành công",
-        data: updatedClass,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi cập nhật thông tin lớp học",
-        error: error.message,
-      });
+  deleteClass: catchAsync(async (req, res) => {
+    await classService.deleteById(req.params.classId);
+    ApiResponse.success(res, "Xóa lớp học thành công");
+  }),
+
+  getAllClasses: catchAsync(async (req, res) => {
+    const { page, limit, sort, teacherId } = req.query;
+
+    // Teacher có thể chỉ xem lớp của mình
+    let filterTeacherId = teacherId;
+    if (req.user && req.user.role === "Teacher") {
+      filterTeacherId = req.user.teacherId;
     }
-  },
 
-  async deleteClass(req, res) {
-    try {
-      const { hardDelete } = req.query;
-      const result = await classService.delete(
-        req.params.classId,
-        hardDelete === "true"
-      );
-      return res.status(200).json({
-        msg: result.message,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi xóa lớp học",
-        error: error.message,
-      });
-    }
-  },
-  async getAllClasses(req, res) {
-    try {
-      const {
-        page,
-        limit,
-        sort,
-        year,
-        grade,
-        isAvailable,
-        teacherId,
-        summary,
-      } = req.query;
+    const options = {
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 10,
+      sort: sort ? JSON.parse(sort) : { createdAt: -1 },
+      teacherId: filterTeacherId,
+    };
 
-      // Build filter object
-      const filter = {};
-      if (year && year.trim()) filter.year = parseInt(year);
-      if (grade && grade.trim()) filter.grade = parseInt(grade);
-      if (isAvailable && isAvailable.trim()) {
-        filter.isAvailable = isAvailable === "true";
-      }
+    const result = await classService.getAllClasses({}, options);
+    ApiResponse.success(res, "Lấy danh sách lớp học thành công", {
+      classes: result.classes,
+      pagination: result.pagination,
+    });
+  }),
 
-      // Filter by role: Teacher chỉ xem lớp mình dạy
-      if (req.user.role === "Teacher") {
-        filter.teacherId = req.user.teacherId; // Giả sử user object có teacherId
-      } else if (teacherId && teacherId.trim()) {
-        // Admin có thể filter theo teacherId
-        filter.teacherId = teacherId;
-      }
+  getClassesOverview: catchAsync(async (req, res) => {
+    const overview = await classService.getClassesOverview();
+    ApiResponse.success(res, "Lấy tổng quan lớp học thành công", overview);
+  }),
 
-      const options = {
-        page: page ? parseInt(page) : 1,
-        limit: limit ? parseInt(limit) : 10,
-        sort: sort ? JSON.parse(sort) : { createdAt: -1 },
-        summary: summary === "true", // Chỉ trả về thông tin cơ bản cho list view
-      };
+  getAvailableTeachers: catchAsync(async (req, res) => {
+    const teachers = await classService.getAvailableTeachers();
+    ApiResponse.success(
+      res,
+      "Lấy danh sách giáo viên khả dụng thành công",
+      teachers
+    );
+  }),
 
-      const result = await classService.getAll(filter, options);
-
-      return res.status(200).json({
-        msg: "Lấy danh sách lớp học thành công",
-        data: result.classes,
-        pagination: result.pagination,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi lấy danh sách lớp học",
-        error: error.message,
-      });
-    }
-  },
-  // ✅ REMOVED: These methods are now handled by the unified PATCH /classes/:classId endpoint
-  // which can handle all class updates including student/teacher assignments through req.body
-
-  // async addStudentToClass(req, res) { ... }
-  // async removeStudentFromClass(req, res) { ... }
-  // async assignTeacher(req, res) { ... }
-  // async removeTeacherFromClass(req, res) { ... }
-  // async addMultipleStudents(req, res) { ... }
-  // async removeMultipleStudents(req, res) { ... }
-
-  async getClassesOverview(req, res) {
-    try {
-      const overview = await classService.getClassesOverview();
-      return res.status(200).json({
-        msg: "Lấy thống kê tổng quan lớp học thành công",
-        data: overview,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi lấy thống kê tổng quan lớp học",
-        error: error.message,
-      });
-    }
-  },
-
-  async getAvailableTeachers(req, res) {
-    try {
-      const { excludeClassId } = req.query;
-      const teachers = await classService.getAvailableTeachers(excludeClassId);
-
-      return res.status(200).json({
-        msg: "Lấy danh sách giáo viên available thành công",
-        data: teachers,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi lấy danh sách giáo viên available",
-        error: error.message,
-      });
-    }
-  },
-
-  async getAvailableStudents(req, res) {
-    try {
-      const { excludeClassId } = req.query;
-      const students = await classService.getAvailableStudents(excludeClassId);
-
-      return res.status(200).json({
-        msg: "Lấy danh sách học sinh available thành công",
-        data: students,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi lấy danh sách học sinh available",
-        error: error.message,
-      });
-    }
-  },
-  // ✅ REMOVED: Consolidated into teacherController.getTeacherClasses
-  // This eliminates API duplication and centralizes teacher-related operations
+  getAvailableStudents: catchAsync(async (req, res) => {
+    const students = await classService.getAvailableStudents();
+    ApiResponse.success(
+      res,
+      "Lấy danh sách học sinh khả dụng thành công",
+      students
+    );
+  }),
 };
 
 module.exports = classController;

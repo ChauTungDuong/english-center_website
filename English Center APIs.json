@@ -1,0 +1,3482 @@
+{
+	"info": {
+		"_postman_id": "26e7ea26-2f44-4609-88bb-a3774f67b57a",
+		"name": "English Center APIs",
+		"description": "Get All Class : Lấy ra toàn bộ các class có trong database\n\nCreate Class : Tạo mới class\n\nSend Login : Đăng nhập (trả về token)\n\nCreate User : Tạo mới user",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "43709949",
+		"_collection_link": "https://tungduong-6049875.postman.co/workspace/Tung-Duong's-Workspace~56c2050f-955e-4694-8315-28c91ed5ab60/collection/43709949-26e7ea26-2f44-4609-88bb-a3774f67b57a?action=share&source=collection_link&creator=43709949"
+	},
+	"item": [
+		{
+			"name": "Common",
+			"item": [
+				{
+					"name": "See Profile Info (All)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NGJhNmQ4MDY3Y2JjNTk1ZTQyN2ZhZSIsImVtYWlsIjoidXNlcjJAZ21haWwuY29tIiwicm9sZSI6IlRlYWNoZXIiLCJpYXQiOjE3NTAyNDA0NDF9.L20xkUEq0soMYTesZmWoIu45tyvLJf2HDU5wtWr4W6A",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "email",
+									"value": "user1@gmail.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "11111111",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/profile",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile (All)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NGJhNmQ4MDY3Y2JjNTk1ZTQyN2ZhZSIsImVtYWlsIjoidXNlcjJAZ21haWwuY29tIiwicm9sZSI6IlRlYWNoZXIiLCJpYXQiOjE3NTAyNDA0NDF9.L20xkUEq0soMYTesZmWoIu45tyvLJf2HDU5wtWr4W6A",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "email",
+									"value": "user_new@gmail.com",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "Phạm Thị H",
+									"type": "text"
+								},
+								{
+									"key": "gender",
+									"value": "Nữ",
+									"type": "text"
+								},
+								{
+									"key": "phoneNumber",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "address",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/profile",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NWI5ZGRiYWZjODEwMzBmZjA3ZjNkNiIsImVtYWlsIjoiYXlldWUyODI0QGdtYWlsLmNvbSIsInJvbGUiOiJUZWFjaGVyIiwiaWF0IjoxNzUwODQyMTYxLCJleHAiOjE3NTE0NDY5NjF9.PIOEDL5HyvJeH3-ybM6KJJVQ3RB00asc8_QRy349KEI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "oldPassword",
+									"value": "phongngu",
+									"type": "text"
+								},
+								{
+									"key": "newPassword",
+									"value": "phongkhon",
+									"type": "text"
+								},
+								{
+									"key": "confirmPassword",
+									"value": "phongkhon",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/change-password",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"change-password"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Account API",
+			"item": [
+				{
+					"name": "Send Login (All)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "email",
+									"value": "smltrasikachannel@gmail.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "11111111",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/login",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout (All)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NDhmNzNiODBhNzU2Y2ZlMTI5N2ZhZiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzUwNzU1NjE4LCJleHAiOjE3NTEzNjA0MTh9.bCbpljeHQ6CAKrEKJ9vQkhdLJD1-XsTrDfo03jeo6h4",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/logout",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password (All)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "email",
+									"value": "ayeue2824@gmail.com",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/forgot-password",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send Verify Code (All)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "email",
+									"value": "ayeue2824@gmail.com",
+									"type": "text"
+								},
+								{
+									"key": "code",
+									"value": "537111",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/verify-reset-code",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"verify-reset-code"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password (All)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "email",
+									"value": "ayeue2824@gmail.com",
+									"type": "text"
+								},
+								{
+									"key": "code",
+									"value": "537111",
+									"type": "text"
+								},
+								{
+									"key": "newPassword",
+									"value": "phongabc",
+									"type": "text"
+								},
+								{
+									"key": "confirmPassword",
+									"value": "phongabc",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{web_link}}v1/api/reset-password",
+							"host": [
+								"{{web_link}}v1"
+							],
+							"path": [
+								"api",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Get User List (Admin)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MzE4NWYzMGIwNDE0OTQ1NDhhY2RlNyIsImVtYWlsIjoiZHVvbmc2YTU3MUBnbWFpbC5jb20iLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NDg2NzY1MzcsImV4cCI6MTc0ODY4MDEzN30.mFFqgUMaCoh4NCEza_iGdjOdsWuFdgeKsdk0kPLUejA",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/users/?page=1&limit=10&email=&name=&role=&sort&isActive=",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"users",
+								""
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "email",
+									"value": ""
+								},
+								{
+									"key": "name",
+									"value": ""
+								},
+								{
+									"key": "role",
+									"value": ""
+								},
+								{
+									"key": "sort",
+									"value": null
+								},
+								{
+									"key": "isActive",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Activate/ Deactivate User (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "isActive",
+									"value": "true",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{web_link}}v1/api/users/:userId/status",
+							"host": [
+								"{{web_link}}v1"
+							],
+							"path": [
+								"api",
+								"users",
+								":userId",
+								"status"
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "684ba730067cbc595e427fb6"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Class",
+			"item": [
+				{
+					"name": "Get Class Overview (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/classes/overview",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"classes",
+								"overview"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create New Class (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"className\" : \"4a3\",\r\n    \"year\": 2025,\r\n    \"grade\": 4,\r\n    \"isAvailable\": true,\r\n    \"feePerLesson\": 100000,\r\n    \"schedule\" : {\r\n        \"startDate\": \"08/12/2025\",\r\n        \"endDate\": \"11/20/2025\",\r\n        \"daysOfLessonInWeek\": [1,3,5]\r\n    },\r\n    \"teacherId\" : \"684ba6d8067cbc595e427fb0\" ,\r\n    \"studentList\": [\"684aee9c10e24b616dccdf76\", \"684ba70e067cbc595e427fb4\"],\r\n    \"attendanceId\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/classes",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"classes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Class (Admin & Teacher)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": []
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/classes?summary=true&page&limit&sort&year=&grade&isAvailable=true&teacherId=",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"classes"
+							],
+							"query": [
+								{
+									"key": "summary",
+									"value": "true"
+								},
+								{
+									"key": "page",
+									"value": null
+								},
+								{
+									"key": "limit",
+									"value": null
+								},
+								{
+									"key": "sort",
+									"value": null
+								},
+								{
+									"key": "year",
+									"value": ""
+								},
+								{
+									"key": "grade",
+									"value": null
+								},
+								{
+									"key": "isAvailable",
+									"value": "true"
+								},
+								{
+									"key": "teacherId",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get A Class Details (Admin & Teacher)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/classes/:classId?include=attendance,detailed,students,schedule",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"classes",
+								":classId"
+							],
+							"query": [
+								{
+									"key": "include",
+									"value": "attendance,detailed,students,schedule"
+								}
+							],
+							"variable": [
+								{
+									"key": "classId",
+									"value": "684fcaa9ca9619ce0b8a43f8"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update A Class (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n   \"studentList\" : \"6860e46f24e0e9f17ed61b2b\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/classes/:classId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"classes",
+								":classId"
+							],
+							"variable": [
+								{
+									"key": "classId",
+									"value": "6853a91e437e7f0016e07c1d"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Close A Class (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/classes/:classId?hardDelete=false",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"classes",
+								":classId"
+							],
+							"query": [
+								{
+									"key": "hardDelete",
+									"value": "false"
+								}
+							],
+							"variable": [
+								{
+									"key": "classId",
+									"value": "684e978c52f5ca689d6e8d30"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Available Teacher (Add to Class) (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/classes/available-teachers?excludeClassId=684e975752f5ca689d6e8d24",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"classes",
+								"available-teachers"
+							],
+							"query": [
+								{
+									"key": "excludeClassId",
+									"value": "684e975752f5ca689d6e8d24",
+									"description": "classId của lớp muốn thêm giáo viên"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Available Student (Add to Class) (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/classes/available-students?excludeClassId=6853a91e437e7f0016e07c1d",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"classes",
+								"available-students"
+							],
+							"query": [
+								{
+									"key": "excludeClassId",
+									"value": "6853a91e437e7f0016e07c1d"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Attendance",
+			"item": [
+				{
+					"name": "Create Attendance (Teacher & Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "date",
+									"value": "2025/08/13",
+									"type": "text"
+								},
+								{
+									"key": "lessonNumber",
+									"value": "2",
+									"type": "text"
+								},
+								{
+									"key": "note",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/attendance/class/:classId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"attendance",
+								"class",
+								":classId"
+							],
+							"variable": [
+								{
+									"key": "classId",
+									"value": "6853a91e437e7f0016e07c1d"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Class Attendance List (Teacher & Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{localhost}}/v1/api/attendance/class/:classId?page=1&limit=10&startDate&endDate",
+							"host": [
+								"{{localhost}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"attendance",
+								"class",
+								":classId"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "startDate",
+									"value": null
+								},
+								{
+									"key": "endDate",
+									"value": null
+								}
+							],
+							"variable": [
+								{
+									"key": "classId",
+									"value": "6853a91e437e7f0016e07c1d"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Taking Attendance (Teacher & Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"students\": [\r\n        {\r\n            \"studentId\": \"6860e46f24e0e9f17ed61b2b\",\r\n            \"isAbsent\" :  true\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{localhost}}/v1/api/attendance/:attendanceId/mark",
+							"host": [
+								"{{localhost}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"attendance",
+								":attendanceId",
+								"mark"
+							],
+							"variable": [
+								{
+									"key": "attendanceId",
+									"value": "6861f794ef329ad06ada1f44"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Attendance (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{localhost}}/v1/api/attendance/:attendanceId",
+							"host": [
+								"{{localhost}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"attendance",
+								":attendanceId"
+							],
+							"variable": [
+								{
+									"key": "attendanceId",
+									"value": "68554a5dee73d9a73e54744d"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Teacher",
+			"item": [
+				{
+					"name": "Create New Teacher (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\" : \"ayeue2824@gmail.com\",\r\n    \"passwordBeforeHash\": \"11111111\",\r\n    \"name\" : \"Nguyễn Thị Tuấn Phong\",\r\n    \"gender\": \"Nữ\",\r\n    \"phoneNumber\": \"047857286\",\r\n    \"address\": \"hai duong\",\r\n     \r\n    \"classId\" : [],\r\n    \"wagePerLesson\" : 100000\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/teachers/",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"teachers",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get A Teacher Info (Teacher, Admin)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "email",
+									"value": "user1@gmail.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "11111111",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/teachers/:teacherId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"teachers",
+								":teacherId"
+							],
+							"variable": [
+								{
+									"key": "teacherId",
+									"value": "684ba6d8067cbc595e427fb0"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update A Teacher (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"gender\" : \"Nam\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/teachers/:teacherId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"teachers",
+								":teacherId"
+							],
+							"variable": [
+								{
+									"key": "teacherId",
+									"value": "6851082404d437ba1c866b9e"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Teachers (Admin)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": []
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/teachers?page&limit&sort&isActive=false",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"teachers"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": null
+								},
+								{
+									"key": "limit",
+									"value": null
+								},
+								{
+									"key": "sort",
+									"value": null
+								},
+								{
+									"key": "isActive",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Soft Delete Teacher (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/teachers/:teacherId/soft",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"teachers",
+								":teacherId",
+								"soft"
+							],
+							"variable": [
+								{
+									"key": "teacherId",
+									"value": "684ba730067cbc595e427fb8"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Parent",
+			"item": [
+				{
+					"name": "Create New Parent (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\" : \"smltrasikachannel@gmail.com\",\r\n    \"passwordBeforeHash\": \"11111111\",\r\n    \"name\" : \"ninweonf\",\r\n    \"gender\": \"Nữ\",\r\n    \"phoneNumber\": \"03424354226\",\r\n    \"address\": \"onianfoi\",\r\n     \r\n    \"childId\": [\"6860e46f24e0e9f17ed61b2b\"],\r\n    \"canSeeTeacher\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/parents",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"parents"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Parents (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/parents?page=1&limit=10&sort&isActive=false",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"parents"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "sort",
+									"value": null
+								},
+								{
+									"key": "isActive",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Parent Info (Admin)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\" : \"user6@gmail.com\",\r\n    \"passwordBeforeHash\": \"11111111\",\r\n    \"name\" : \"Võ Văn G\",\r\n    \"gender\": \"Nam\",\r\n    \"phoneNumber\": \"0748278432\",\r\n    \"address\": \"pol\",\r\n     \r\n    \"childId\": null,\r\n    \"canSeeTeacher\": false\r\n}"
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/parents/:parentId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"parents",
+								":parentId"
+							],
+							"variable": [
+								{
+									"key": "parentId",
+									"value": "6852b7ea35ea34c6f77c8a63"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Parent (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n   \"childId\" : [\"684aee9c10e24b616dccdf76\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/parents/:parentId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"parents",
+								":parentId"
+							],
+							"variable": [
+								{
+									"key": "parentId",
+									"value": "6852b7ea35ea34c6f77c8a63"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Soft Delete Parent (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/parents/:parentId/soft",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"parents",
+								":parentId",
+								"soft"
+							],
+							"variable": [
+								{
+									"key": "parentId",
+									"value": "685683756e2c78cd09e5708e"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Children Classes Info (Parent, Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/parents/:parentId/children-details",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"parents",
+								":parentId",
+								"children-details"
+							],
+							"variable": [
+								{
+									"key": "parentId",
+									"value": "6852b7ea35ea34c6f77c8a63"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Parent-Children (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"action\" : \"remove\",\r\n    \"studentId\" : [\"684aee9c10e24b616dccdf76\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/parents/:parentId/children",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"parents",
+								":parentId",
+								"children"
+							],
+							"variable": [
+								{
+									"key": "parentId",
+									"value": "6852b7ea35ea34c6f77c8a63"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Student",
+			"item": [
+				{
+					"name": "Create New Student (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\" : \"duong6a571@gmail.com\",\r\n    \"passwordBeforeHash\": \"11111111\",\r\n    \"name\" : \"Tài khoản test\",\r\n    \"gender\": \"Nam\",\r\n    \"phoneNumber\": \"9238946923\",\r\n    \"address\": \"obwgbio\",\r\n\r\n    \"classId\": null,\r\n    \"parentId\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/students",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"students"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Students (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/students?page&limit&sort&isActive=false",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"students"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": null
+								},
+								{
+									"key": "limit",
+									"value": null
+								},
+								{
+									"key": "sort",
+									"value": null
+								},
+								{
+									"key": "isActive",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get A Student Info (Student,Admin)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/students/:studentId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"students",
+								":studentId"
+							],
+							"variable": [
+								{
+									"key": "studentId",
+									"value": "684ba70e067cbc595e427fb4"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Student (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n    \"classId\": [\"6853a91e437e7f0016e07c1d\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/students/:studentId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"students",
+								":studentId"
+							],
+							"variable": [
+								{
+									"key": "studentId",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Soft Delete Student (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/students/:studentId/soft",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"students",
+								":studentId",
+								"soft"
+							],
+							"variable": [
+								{
+									"key": "studentId",
+									"value": "685aad42c05258673afecbdd"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Available Classes (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/students/:studentId/available-classes?grade=&year",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"students",
+								":studentId",
+								"available-classes"
+							],
+							"query": [
+								{
+									"key": "grade",
+									"value": ""
+								},
+								{
+									"key": "year",
+									"value": null
+								}
+							],
+							"variable": [
+								{
+									"key": "studentId",
+									"value": "6851091804d437ba1c866bad"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Enroll Student To Classes (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"classesWithDiscount\": [\r\n        {\r\n            \"classId\" : \"6853a91e437e7f0016e07c1d\",\r\n            \"discountPercentage\": 10\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/students/:studentId/enroll",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"students",
+								":studentId",
+								"enroll"
+							],
+							"variable": [
+								{
+									"key": "studentId",
+									"value": "684ba74d067cbc595e427fbc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Withdraw Student From Classes (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"classIds\" : [\r\n        \"684e975752f5ca689d6e8d24\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/students/:studentId/withdraw",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"students",
+								":studentId",
+								"withdraw"
+							],
+							"variable": [
+								{
+									"key": "studentId",
+									"value": "684ba74d067cbc595e427fbc"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Payments",
+			"item": [
+				{
+					"name": "Get Children's Unpaid Payments (Parent, Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/parents/:parentId/unpaid-payments?month=&year=",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"parents",
+								":parentId",
+								"unpaid-payments"
+							],
+							"query": [
+								{
+									"key": "month",
+									"value": ""
+								},
+								{
+									"key": "year",
+									"value": ""
+								}
+							],
+							"variable": [
+								{
+									"key": "parentId",
+									"value": "6852b7ea35ea34c6f77c8a63"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Payment Request (Parent)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NTJiN2VhMzVlYTM0YzZmNzdjOGE2MSIsImVtYWlsIjoidXNlcjZAZ21haWwuY29tIiwicm9sZSI6IlBhcmVudCIsImlhdCI6MTc1MDU3NjA0M30.EORN5CvVOq7JnPsstqMJpHxfml-yc18tItypD-kiPiE",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "paymentId",
+									"value": "68550f2d7aca24afb771efac",
+									"type": "text"
+								},
+								{
+									"key": "amount",
+									"value": "1260000",
+									"type": "text"
+								},
+								{
+									"key": "proof",
+									"type": "file",
+									"src": "/C:/Users/duong/Downloads/762110ca-fcb3-4959-89e6-b864195cb499.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/parents/:parentId/payment-request",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"parents",
+								":parentId",
+								"payment-request"
+							],
+							"variable": [
+								{
+									"key": "parentId",
+									"value": "6852b7ea35ea34c6f77c8a63"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Payments Request (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/parent-payment-requests",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"parent-payment-requests"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get A Payment Request (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/parent-payment-requests/:requestId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"parent-payment-requests",
+								":requestId"
+							],
+							"variable": [
+								{
+									"key": "requestId",
+									"value": "6857bc7a3d3cc534e68b35fb"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Process Parent's Payment (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "action",
+									"value": "approved",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/parent-payment-requests/:requestId/process",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"parent-payment-requests",
+								":requestId",
+								"process"
+							],
+							"variable": [
+								{
+									"key": "requestId",
+									"value": "6857bc7a3d3cc534e68b35fb"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Teacher Wage Payments",
+			"item": [
+				{
+					"name": "Get All Teacher Wage and Statistic (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/teacher-wages?month&year&teacherId=&paymentStatus=&page&limit&sort&includeList=&includeStats=",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"teacher-wages"
+							],
+							"query": [
+								{
+									"key": "month",
+									"value": null
+								},
+								{
+									"key": "year",
+									"value": null
+								},
+								{
+									"key": "teacherId",
+									"value": ""
+								},
+								{
+									"key": "paymentStatus",
+									"value": ""
+								},
+								{
+									"key": "page",
+									"value": null
+								},
+								{
+									"key": "limit",
+									"value": null
+								},
+								{
+									"key": "sort",
+									"value": null
+								},
+								{
+									"key": "includeList",
+									"value": ""
+								},
+								{
+									"key": "includeStats",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Calculate All Teacher Wage (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "month",
+									"value": "8",
+									"type": "text"
+								},
+								{
+									"key": "year",
+									"value": "2025",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/teacher-wages/calculate",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"teacher-wages",
+								"calculate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get A Wage Record (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/teacher-wages/:teacherWageId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"teacher-wages",
+								":teacherWageId"
+							],
+							"variable": [
+								{
+									"key": "teacherWageId",
+									"value": "685e66f8f564dc200bc22110"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get A Teacher Wage (Admin, Teacher)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/teacher-wages/teacher/:teacherId?month&year&isPaid&page&limit",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"teacher-wages",
+								"teacher",
+								":teacherId"
+							],
+							"query": [
+								{
+									"key": "month",
+									"value": null
+								},
+								{
+									"key": "year",
+									"value": null
+								},
+								{
+									"key": "isPaid",
+									"value": null
+								},
+								{
+									"key": "page",
+									"value": null
+								},
+								{
+									"key": "limit",
+									"value": null
+								}
+							],
+							"variable": [
+								{
+									"key": "teacherId",
+									"value": "684ba6d8067cbc595e427fb0"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Pay For A Teacher (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "paidAmount",
+									"value": "90000",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/teacher-wages/:teacherWageId/process",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"teacher-wages",
+								":teacherWageId",
+								"process"
+							],
+							"variable": [
+								{
+									"key": "teacherWageId",
+									"value": "685e66f8f564dc200bc22110"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete A Payments (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/teacher-wages/:teacherWageId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"teacher-wages",
+								":teacherWageId"
+							],
+							"variable": [
+								{
+									"key": "teacherWageId",
+									"value": "685e66f8f564dc200bc22110"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Wage Payment (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "lessonTaught",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "amount",
+									"value": "0",
+									"type": "text"
+								},
+								{
+									"key": "paymentDate",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "paidBy",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/teacher-wages/:teacherWageId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"teacher-wages",
+								":teacherWageId"
+							],
+							"variable": [
+								{
+									"key": "teacherWageId",
+									"value": "685e66f8f564dc200bc22110"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Statistic",
+			"item": [
+				{
+					"name": "Get All Statistics (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/statistics?month&year&startDate&endDate&classId&teacherId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"statistics"
+							],
+							"query": [
+								{
+									"key": "month",
+									"value": null
+								},
+								{
+									"key": "year",
+									"value": null
+								},
+								{
+									"key": "startDate",
+									"value": null
+								},
+								{
+									"key": "endDate",
+									"value": null
+								},
+								{
+									"key": "classId",
+									"value": null
+								},
+								{
+									"key": "teacherId",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Advertisement",
+			"item": [
+				{
+					"name": "Get Advertisement (ALL)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/advertisements/public",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"advertisements",
+								"public"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create New Advertisement (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "title",
+									"value": "KRFHGIDJ",
+									"type": "text"
+								},
+								{
+									"key": "content",
+									"value": "gugreahuigaerhuigre",
+									"type": "text"
+								},
+								{
+									"key": "startDate",
+									"value": "2025/6/30",
+									"type": "text"
+								},
+								{
+									"key": "endDate",
+									"value": "2025/8/07",
+									"type": "text"
+								},
+								{
+									"key": "images",
+									"type": "file",
+									"src": "/C:/Users/duong/Downloads/inception.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/advertisements",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"advertisements"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Advertisements (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/advertisements?page=1&limit=10&isActive=&search=",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"advertisements"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "isActive",
+									"value": ""
+								},
+								{
+									"key": "search",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get An Advertisements (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/advertisements/:advertisementId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"advertisements",
+								":advertisementId"
+							],
+							"variable": [
+								{
+									"key": "advertisementId",
+									"value": "68601d0592820f943d58179a"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update An Advertisement (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "title",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "content",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "startDate",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "endDate",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "isActive",
+									"value": "false",
+									"type": "text"
+								},
+								{
+									"key": "images",
+									"type": "file",
+									"src": [],
+									"disabled": true
+								},
+								{
+									"key": "removeImages",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/advertisements/:advertisementId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"advertisements",
+								":advertisementId"
+							],
+							"variable": [
+								{
+									"key": "advertisementId",
+									"value": "68601d0592820f943d58179a"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete An Advertisement (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}v1/api/advertisements/:advertisementId",
+							"host": [
+								"{{web_link}}v1"
+							],
+							"path": [
+								"api",
+								"advertisements",
+								":advertisementId"
+							],
+							"variable": [
+								{
+									"key": "advertisementId",
+									"value": "68601d0592820f943d58179a"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Notification",
+			"item": [
+				{
+					"name": "Auto Notification",
+					"item": [
+						{
+							"name": "Create Auto Notification (Admin)",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{admin_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "classId",
+											"value": "684fcaa9ca9619ce0b8a43f8",
+											"type": "text"
+										},
+										{
+											"key": "scheduleType",
+											"value": "daily",
+											"type": "text"
+										},
+										{
+											"key": "isActive",
+											"value": "true",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{web_link}}/v1/api/notifications/auto-notifications",
+									"host": [
+										"{{web_link}}"
+									],
+									"path": [
+										"v1",
+										"api",
+										"notifications",
+										"auto-notifications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Auto Noti Settings (Admin)",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{admin_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{web_link}}/v1/api/notifications/auto-settings",
+									"host": [
+										"{{web_link}}"
+									],
+									"path": [
+										"v1",
+										"api",
+										"notifications",
+										"auto-settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Auto Notifications (Admin)",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{admin_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "classId",
+											"value": "",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "scheduleType",
+											"value": "monthly",
+											"type": "text"
+										},
+										{
+											"key": "isActive",
+											"value": "true",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "{{web_link}}/v1/api/notifications/auto-settings/:settingId",
+									"host": [
+										"{{web_link}}"
+									],
+									"path": [
+										"v1",
+										"api",
+										"notifications",
+										"auto-settings",
+										":settingId"
+									],
+									"variable": [
+										{
+											"key": "settingId",
+											"value": "686293ce6ace1e88a7eaaa5d"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Auto Notification (Admin)",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{admin_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{web_link}}/v1/api/notifications/auto-settings/:settingId",
+									"host": [
+										"{{web_link}}"
+									],
+									"path": [
+										"v1",
+										"api",
+										"notifications",
+										"auto-settings",
+										":settingId"
+									],
+									"variable": [
+										{
+											"key": "settingId",
+											"value": "686293fb6ace1e88a7eaaa62"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Trigger Auto Notification Instantly (Admin)",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{admin_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{web_link}}/v1/api/notifications/auto-settings/:settingId/trigger",
+									"host": [
+										"{{web_link}}"
+									],
+									"path": [
+										"v1",
+										"api",
+										"notifications",
+										"auto-settings",
+										":settingId",
+										"trigger"
+									],
+									"variable": [
+										{
+											"key": "settingId",
+											"value": "68615f3bb83fdbe0b5f00ef1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Scheduler Status (Admin)",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{admin_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{web_link}}/v1/api/notifications/scheduler/status",
+									"host": [
+										"{{web_link}}"
+									],
+									"path": [
+										"v1",
+										"api",
+										"notifications",
+										"scheduler",
+										"status"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Create And Send New Notification (Admin, Teacher)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"title\": \"Thông báo nghỉ học\",\r\n  \"content\": \"Giảng viên bị đau bụng\", \r\n  \"targetRole\": \"Student\",\r\n  \"type\": \"General\",\r\n  \"method\": \"web\",\r\n  \"classId\" : \"\",\r\n  \"scheduleType\" : \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/notifications",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"notifications"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Notifications (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/notifications?page&limit&type&targetRole&createByRole&search=",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"notifications"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": null
+								},
+								{
+									"key": "limit",
+									"value": null
+								},
+								{
+									"key": "type",
+									"value": null
+								},
+								{
+									"key": "targetRole",
+									"value": null
+								},
+								{
+									"key": "createByRole",
+									"value": null
+								},
+								{
+									"key": "search",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get A Notifications (All)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NjBlNDZmMjRlMGU5ZjE3ZWQ2MWIyOSIsImVtYWlsIjoiZHVvbmc2YTU3MUBnbWFpbC5jb20iLCJyb2xlIjoiU3R1ZGVudCIsImlhdCI6MTc1MTE5NjkwNiwiZXhwIjoxNzUxODAxNzA2fQ.YFQuJnz4vvYPvRmh2m7mH8vw8ePxAlO9Fxyyv53jxss",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/notifications/:notificationId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"notifications",
+								":notificationId"
+							],
+							"variable": [
+								{
+									"key": "notificationId",
+									"value": "68610fe588e97825359f1ec5"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete A Notification (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/notifications/:notificationId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"notifications",
+								":notificationId"
+							],
+							"variable": [
+								{
+									"key": "notificationId",
+									"value": "686107ed56219de8f9ba1ec6"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Notification By Role (Loggedin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NjE0ZmU2NjcyYTA1MGFjNzc2ZmExNyIsImVtYWlsIjoic21sdHJhc2lrYWNoYW5uZWxAZ21haWwuY29tIiwicm9sZSI6IlBhcmVudCIsImlhdCI6MTc1MTI3MjQ3NSwiZXhwIjoxNzUxODc3Mjc1fQ.d6dNK-mncta_xer-h6hQ4GjfF97VogiUBI5xpgmgOYY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/notifications/for-role",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"notifications",
+								"for-role"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Created Notification (Teacher, Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/notifications/my-notifications",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"notifications",
+								"my-notifications"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Hard Delete",
+			"item": [
+				{
+					"name": "Hard Delete Teacher (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/teachers/:teacherId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"teachers",
+								":teacherId"
+							],
+							"variable": [
+								{
+									"key": "teacherId",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Hard Delete Parent (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": []
+						},
+						"url": {
+							"raw": "{{web_link}}/v1/api/parents/:parentId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"parents",
+								":parentId"
+							],
+							"variable": [
+								{
+									"key": "parentId",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Hard Delete Student (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{web_link}}/v1/api/students/:studentId",
+							"host": [
+								"{{web_link}}"
+							],
+							"path": [
+								"v1",
+								"api",
+								"students",
+								":studentId"
+							],
+							"variable": [
+								{
+									"key": "studentId",
+									"value": "6850e0d638ff8a0fff8bec50"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "JWT_SECRET",
+			"value": "",
+			"type": "default"
+		},
+		{
+			"key": "admin_token",
+			"value": "",
+			"type": "default"
+		},
+		{
+			"key": "web_link",
+			"value": "https://english-center-website.onrender.com",
+			"type": "string"
+		},
+		{
+			"key": "localhost",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

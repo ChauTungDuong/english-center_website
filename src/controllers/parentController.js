@@ -1,396 +1,233 @@
-const { Student, Parent, Payment, User } = require("../models");
-
-const parentService = require("../services/role_services/parentService");
-const parentPaymentRequestService = require("../services/role_services/parentPaymentRequestService");
+const ParentService = require("../services/ParentService");
+const ParentPaymentRequestService = require("../services/ParentPaymentRequestService");
+const PaymentService = require("../services/PaymentService");
+const { catchAsync } = require("../core/middleware");
+const { ApiResponse } = require("../core/utils");
+const parentService = new ParentService();
+const paymentService = new PaymentService();
 
 const parentController = {
-  async createNewParent(req, res) {
-    try {
-      const parent = await parentService.create(req.body);
-      return res.status(201).json({
-        msg: "Tạo phụ huynh thành công",
-        data: parent,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi tạo phụ huynh",
-        error: error.message,
-      });
+  createNewParent: catchAsync(async (req, res) => {
+    const parent = await parentService.createParent(req.body);
+    ApiResponse.success(res, "Tạo phụ huynh thành công", parent, 201);
+  }),
+  getParentInfo: catchAsync(async (req, res) => {
+    const parent = await parentService.getById(req.params.parentId);
+    ApiResponse.success(res, "Lấy thông tin phụ huynh thành công", parent);
+  }),
+  updateParent: catchAsync(async (req, res) => {
+    const updatedParent = await parentService.updateParent(
+      req.params.parentId,
+      req.body
+    );
+    ApiResponse.success(
+      res,
+      "Cập nhật thông tin phụ huynh thành công",
+      updatedParent
+    );
+  }),
+  deleteParent: catchAsync(async (req, res) => {
+    await parentService.deleteById(req.params.parentId);
+    ApiResponse.success(res, "Xóa phụ huynh thành công");
+  }),
+  getAllParents: catchAsync(async (req, res) => {
+    const { page, limit, sort, isActive } = req.query;
+    let parsedIsActive;
+    if (isActive === "true") {
+      parsedIsActive = true;
+    } else if (isActive === "false") {
+      parsedIsActive = false;
     }
-  },
-  async getParentInfo(req, res) {
-    try {
-      const parent = await parentService.getById(req.params.parentId);
-      return res.status(200).json({
-        msg: "Lấy thông tin phụ huynh thành công",
-        data: parent,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi lấy thông tin phụ huynh",
-        error: error.message,
-      });
-    }
-  },
-  async updateParent(req, res) {
-    try {
-      const updatedParent = await parentService.update(
-        req.params.parentId,
-        req.body
-      );
-      return res.status(200).json({
-        msg: "Cập nhật thông tin phụ huynh thành công",
-        data: updatedParent,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi cập nhật thông tin phụ huynh",
-        error: error.message,
-      });
-    }
-  },
-  async deleteParent(req, res) {
-    try {
-      await parentService.delete(req.params.parentId);
-      return res.status(200).json({
-        msg: "Xóa phụ huynh thành công",
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi xóa phụ huynh",
-        error: error.message,
-      });
-    }
-  },
-
-  async getAllParents(req, res) {
-    try {
-      const { page, limit, sort, isActive } = req.query;
-
-      // Parse isActive để có logic rõ ràng: true, false, hoặc undefined
-      let parsedIsActive;
-      if (isActive === "true") {
-        parsedIsActive = true;
-      } else if (isActive === "false") {
-        parsedIsActive = false;
-      }
-      // Nếu isActive không có hoặc không phải "true"/"false" thì để undefined
-
-      const options = {
-        page: page ? parseInt(page) : 1,
-        limit: limit ? parseInt(limit) : 10,
-        sort: sort ? JSON.parse(sort) : { createdAt: -1 },
-        isActive: parsedIsActive,
-      };
-
-      const result = await parentService.getAll({}, options);
-      return res.status(200).json({
-        msg: "Lấy danh sách phụ huynh thành công",
-        data: result.parents,
-        pagination: result.pagination,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi lấy danh sách phụ huynh",
-        error: error.message,
-      });
-    }
-  },
-  async getAllChild(req, res) {
-    // ❌ API này đã được thay thế bằng getChildrenWithDetails
-    return res.status(410).json({
-      msg: "API này đã bị loại bỏ. Vui lòng sử dụng GET /parents/:parentId/children-details",
+    const options = {
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 10,
+      sort: sort ? JSON.parse(sort) : { createdAt: -1 },
+      isActive: parsedIsActive,
+    };
+    const result = await parentService.getAllParents({}, options);
+    ApiResponse.success(res, "Lấy danh sách phụ huynh thành công", {
+      parents: result.parents,
+      pagination: result.pagination,
     });
-  },
-  // API mới: Quản lý quan hệ Parent-Student (thay thế link/unlink)
-  async updateParentChildren(req, res) {
-    try {
-      const { parentId } = req.params;
-      const { action, studentId, studentIds } = req.body;
+  }),
+  getChildrenWithDetails: catchAsync(async (req, res) => {
+    const { parentId } = req.params;
+    const children = await parentService.getParentChildren(parentId);
+    ApiResponse.success(res, "Lấy chi tiết con cái thành công", children);
+  }),
+  updateParentChildren: catchAsync(async (req, res) => {
+    const { parentId } = req.params;
+    const { action, studentId, studentIds } = req.body;
+    if (!parentId) {
+      return ApiResponse.error(res, "Thiếu thông tin: parentId", 400);
+    }
+    if (!action || !["add", "remove"].includes(action)) {
+      return ApiResponse.error(res, "Action phải là 'add' hoặc 'remove'", 400);
+    }
+    let studentsToProcess = [];
 
-      if (!parentId) {
-        return res.status(400).json({
-          msg: "Thiếu thông tin: parentId",
-        });
+    if (studentId && studentIds) {
+      return ApiResponse.error(
+        res,
+        "Chỉ được sử dụng một trong hai: studentId hoặc studentIds",
+        400
+      );
+    }
+    if (studentId) {
+      studentsToProcess = Array.isArray(studentId) ? studentId : [studentId];
+    } else if (studentIds && Array.isArray(studentIds)) {
+      if (studentIds.length === 0) {
+        return ApiResponse.error(res, "studentIds không được rỗng", 400);
       }
-      // Validation action
-      if (!action || !["add", "remove"].includes(action)) {
-        return res.status(400).json({
-          msg: "Action phải là 'add' hoặc 'remove'",
-        });
-      } // 🔥 Support cả single và multiple students
-      let studentsToProcess = [];
-
-      if (studentId && studentIds) {
-        return res.status(400).json({
-          msg: "Chỉ được sử dụng một trong hai: studentId hoặc studentIds",
-        });
-      }
-
-      if (studentId) {
-        // Handle both string and array for studentId
-        if (Array.isArray(studentId)) {
-          studentsToProcess = studentId;
+      studentsToProcess = studentIds;
+    } else {
+      return ApiResponse.error(
+        res,
+        "Thiếu thông tin: studentId hoặc studentIds",
+        400
+      );
+    }
+    const results = [];
+    for (const studentId of studentsToProcess) {
+      try {
+        if (action === "add") {
+          await parentService.addChildToParent(parentId, studentId);
         } else {
-          studentsToProcess = [studentId];
+          await parentService.removeChildFromParent(parentId, studentId);
         }
-      } else if (studentIds && Array.isArray(studentIds)) {
-        if (studentIds.length === 0) {
-          return res.status(400).json({
-            msg: "studentIds không được rỗng",
-          });
-        }
-        studentsToProcess = studentIds;
-      } else {
-        return res.status(400).json({
-          msg: "Thiếu thông tin: studentId hoặc studentIds",
-        });
+        results.push({ studentId, success: true });
+      } catch (error) {
+        results.push({ studentId, success: false, error: error.message });
       }
+    }
+    const successCount = results.filter((r) => r.success).length;
+    const successMsg =
+      studentsToProcess.length === 1
+        ? `${
+            action === "add" ? "Thêm" : "Xóa"
+          } quan hệ parent-student thành công`
+        : `${action === "add" ? "Thêm" : "Xóa"} ${successCount}/${
+            studentsToProcess.length
+          } quan hệ parent-student thành công`;
+    ApiResponse.success(res, successMsg, {
+      results,
+      summary: { total: studentsToProcess.length, success: successCount },
+    });
+  }),
+  softDeleteParent: catchAsync(async (req, res) => {
+    const { parentId } = req.params;
+    const result = await parentService.softDeleteParent(parentId);
+    ApiResponse.success(res, result.message);
+  }),
 
-      // Process multiple students
-      const result = await parentService.updateChildRelationshipBulk(
+  // Payment-related methods
+  getChildrenUnpaidPayments: catchAsync(async (req, res) => {
+    const { parentId } = req.params;
+
+    // Get parent's children
+    const parent = await parentService.getById(parentId);
+    const childrenIds = parent.childId.map((child) => child._id);
+
+    // Get unpaid payments for all children
+    const unpaidPayments = [];
+    for (const childId of childrenIds) {
+      const payments = await paymentService.getStudentPayments(childId, {
+        status: "pending",
+      });
+      unpaidPayments.push(...payments);
+    }
+
+    ApiResponse.success(
+      res,
+      "Lấy thông tin học phí chưa đóng thành công",
+      unpaidPayments
+    );
+  }),
+
+  createPaymentRequest: catchAsync(async (req, res) => {
+    const { parentId } = req.params;
+    const requestData = { ...req.body, parentId };
+
+    // Handle uploaded file if present
+    if (req.files && req.files.proof) {
+      requestData.uploadedFile = req.files.proof[0];
+    }
+
+    const paymentRequest =
+      await ParentPaymentRequestService.createPaymentRequest(requestData, req);
+    ApiResponse.success(
+      res,
+      "Tạo yêu cầu thanh toán thành công",
+      paymentRequest,
+      201
+    );
+  }),
+
+  getPaymentRequests: catchAsync(async (req, res) => {
+    const { parentId } = req.params;
+    const { page, limit, status } = req.query;
+
+    const options = {
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 10,
+      status,
+    };
+
+    const paymentRequests =
+      await ParentPaymentRequestService.getParentPaymentRequests(
         parentId,
-        action,
-        studentsToProcess
+        options
       );
+    ApiResponse.success(
+      res,
+      "Lấy danh sách yêu cầu thanh toán thành công",
+      paymentRequests
+    );
+  }),
 
-      const successMsg =
-        studentsToProcess.length === 1
-          ? `${
-              action === "add" ? "Thêm" : "Xóa"
-            } quan hệ parent-student thành công`
-          : `${action === "add" ? "Thêm" : "Xóa"} ${result.summary.success}/${
-              studentsToProcess.length
-            } quan hệ parent-student thành công`;
+  getAllPaymentRequests: catchAsync(async (req, res) => {
+    const { page, limit, status } = req.query;
 
-      return res.status(200).json({
-        msg: successMsg,
-        data: result,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi cập nhật quan hệ parent-student",
-        error: error.message,
-      });
-    }
-  },
+    const options = {
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 10,
+      status,
+    };
 
-  // API mới: Lấy thông tin chi tiết các con kể cả điểm danh
-  async getChildrenWithDetails(req, res) {
-    try {
-      const { parentId } = req.params;
-      const children = await parentService.getChildrenWithDetails(parentId);
-      return res.status(200).json({
-        msg: "Lấy thông tin chi tiết các con thành công",
-        data: children,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi lấy thông tin chi tiết các con",
-        error: error.message,
-      });
-    }
-  },
+    const paymentRequests =
+      await ParentPaymentRequestService.getAllPaymentRequests(options);
+    ApiResponse.success(
+      res,
+      "Lấy tất cả yêu cầu thanh toán thành công",
+      paymentRequests
+    );
+  }),
 
-  // API mới: Lấy thông tin học phí chưa đóng của các con
-  async getChildrenUnpaidPayments(req, res) {
-    try {
-      const { parentId } = req.params;
-      const { month, year } = req.query;
+  processPaymentRequest: catchAsync(async (req, res) => {
+    const { requestId } = req.params;
+    const { action, adminNote } = req.body;
 
-      const result = await parentService.getChildrenUnpaidPayments(parentId, {
-        month,
-        year,
-      });
-
-      return res.status(200).json({
-        msg: "Lấy thông tin học phí chưa đóng thành công",
-        data: result,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi lấy thông tin học phí chưa đóng",
-        error: error.message,
-      });
-    }
-  }, // API mới: Tạo yêu cầu thanh toán
-  async createPaymentRequest(req, res) {
-    try {
-      const { parentId } = req.params;
-
-      // Với .fields(), file sẽ ở trong req.files
-      const uploadedFile =
-        req.files && req.files["proof"] ? req.files["proof"][0] : null;
-
-      const requestData = {
-        ...req.body,
-        parentId,
-        uploadedFile, // File từ multer middleware
-      };
-
-      const paymentRequest =
-        await parentPaymentRequestService.createPaymentRequest(
-          requestData,
-          req
-        );
-
-      return res.status(201).json({
-        msg: "Tạo yêu cầu thanh toán thành công",
-        data: paymentRequest,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi tạo yêu cầu thanh toán",
-        error: error.message,
-      });
-    }
-  },
-
-  // API mới: Lấy danh sách yêu cầu thanh toán của phụ huynh
-  async getPaymentRequests(req, res) {
-    try {
-      const { parentId } = req.params;
-      const { status, page, limit } = req.query;
-
-      const result = await parentPaymentRequestService.getParentPaymentRequests(
-        parentId,
-        {
-          status,
-          page: page ? parseInt(page) : 1,
-          limit: limit ? parseInt(limit) : 10,
-        }
+    if (!["approve", "reject"].includes(action)) {
+      return ApiResponse.error(
+        res,
+        "Action phải là 'approve' hoặc 'reject'",
+        400
       );
-
-      return res.status(200).json({
-        msg: "Lấy danh sách yêu cầu thanh toán thành công",
-        data: result.requests,
-        pagination: result.pagination,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi lấy danh sách yêu cầu thanh toán",
-        error: error.message,
-      });
     }
-  },
 
-  async getChildPayments(req, res) {
-    try {
-      const { studentId } = req.params;
-      const { month, year } = req.query;
-
-      const filter = { studentId };
-      if (month) filter.month = parseInt(month);
-      if (year) filter.year = parseInt(year);
-
-      const payments = await Payment.find(filter)
-        .populate("classId", "className")
-        .sort({ year: -1, month: -1 });
-
-      // Tính tổng học phí chưa đóng
-      let totalDue = 0;
-      for (const payment of payments) {
-        const due = payment.amountDue - payment.amountPaid;
-        if (due > 0) totalDue += due;
-      }
-
-      return res.status(200).json({
-        msg: "Lấy thông tin học phí thành công",
-        data: {
-          payments,
-          totalDue,
-        },
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi lấy thông tin học phí",
-        error: error.message,
-      });
-    }
-  },
-
-  // API mới: Admin lấy tất cả yêu cầu thanh toán (có kèm ảnh)
-  async getAllPaymentRequests(req, res) {
-    try {
-      const { status, page, limit, parentId, studentId } = req.query;
-
-      const result = await parentPaymentRequestService.getAllPaymentRequests({
-        status,
-        page: page ? parseInt(page) : 1,
-        limit: limit ? parseInt(limit) : 10,
-        parentId,
-        studentId,
-      });
-
-      return res.status(200).json({
-        msg: "Lấy danh sách tất cả yêu cầu thanh toán thành công",
-        data: result.requests,
-        pagination: result.pagination,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi lấy danh sách yêu cầu thanh toán",
-        error: error.message,
-      });
-    }
-  },
-
-  // API mới: Admin/Teacher xử lý yêu cầu thanh toán (approve/reject)
-  async processPaymentRequest(req, res) {
-    try {
-      const { requestId } = req.params;
-      const { action, adminNote } = req.body;
-
-      // processedBy sẽ là ID của admin/teacher đang đăng nhập
-      const processedBy = req.user?.id || req.body.processedBy;
-
-      const result = await parentPaymentRequestService.processPaymentRequest(
-        requestId,
-        {
-          action,
-          adminNote,
-          processedBy,
-        }
-      );
-
-      return res.status(200).json({
-        msg: `${
-          action === "approved" ? "Duyệt" : "Từ chối"
-        } yêu cầu thanh toán thành công`,
-        data: result,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi xử lý yêu cầu thanh toán",
-        error: error.message,
-      });
-    }
-  },
-
-  // Soft delete parent (chỉ admin)
-  async softDeleteParent(req, res) {
-    try {
-      // Chỉ admin mới có quyền
-      if (req.user.role !== "Admin") {
-        return res.status(403).json({
-          msg: "Chỉ Admin mới có quyền thực hiện thao tác này",
-        });
-      }
-
-      const { parentId } = req.params;
-
-      const result = await parentService.softDelete(parentId);
-
-      return res.status(200).json({
-        msg: "Xóa mềm parent thành công",
-        parent: result,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        msg: "Lỗi khi xóa mềm parent",
-        error: error.message,
-      });
-    }
-  },
+    const result = await ParentPaymentRequestService.processPaymentRequest(
+      requestId,
+      action,
+      adminNote
+    );
+    ApiResponse.success(
+      res,
+      `${
+        action === "approve" ? "Duyệt" : "Từ chối"
+      } yêu cầu thanh toán thành công`,
+      result
+    );
+  }),
 };
+
 module.exports = parentController;

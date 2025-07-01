@@ -1,4 +1,4 @@
-const parentPaymentRequestService = require("../services/role_services/parentPaymentRequestService");
+const parentPaymentRequestService = require("../services/ParentPaymentRequestService");
 
 const parentPaymentRequestController = {
   // Lấy tất cả yêu cầu thanh toán (cho admin)
