@@ -25,21 +25,14 @@ const paymentController = {
     }
   },
 
-  // API: Student-specific payment routes (xem payment của học sinh)
+  // API: Student-specific payment routes (chỉ Admin xem được)
   async getStudentPayments(req, res) {
     try {
       const { studentId } = req.params;
       const { month, year, status } = req.query;
 
-      // Kiểm tra quyền truy cập
-      if (
-        (req.user.role === "Student" || req.user.role === "Parent") &&
-        req.user.studentId?.toString() !== studentId
-      ) {
-        return res.status(403).json({
-          msg: "Bạn chỉ có thể xem thông tin thanh toán của chính mình",
-        });
-      }
+      // Chỉ Admin được phép xem - đã được kiểm tra trong middleware verifyRole
+      // Phụ huynh và học sinh sử dụng route riêng để xem thông tin thanh toán
 
       const payments = await paymentService.getStudentPayments(studentId, {
         month,

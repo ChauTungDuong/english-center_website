@@ -12,10 +12,10 @@ router.get(
   paymentController.getPaymentSummary
 );
 
-// Student-specific payment routes (xem payment của học sinh)
+// Student-specific payment routes (chỉ Admin xem được - phụ huynh có route riêng)
 router.get(
   "/students/:studentId/payments",
-  verifyRole(["Admin", "Student", "Parent"]),
+  verifyRole(["Admin"]),
   paymentController.getStudentPayments
 );
 

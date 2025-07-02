@@ -3,6 +3,7 @@ const { User } = require("../models");
 const { hashCompare } = require("../services/hashPassGen");
 const authService = require("../services/role_services/authService");
 const { createToken } = require("../utils/jwt");
+const { getRoleId } = require("../utils/roleUtils");
 
 require("dotenv").config();
 
@@ -32,10 +33,14 @@ const authController = {
         return res.status(401).json({ msg: "Sai mật khẩu" });
       }
 
+      // Get roleId based on user's role
+      const roleId = await getRoleId(user._id, user.role);
+
       const token = createToken({
         id: user._id,
         email: user.email,
         role: user.role,
+        roleId: roleId,
       });
 
       return res.status(200).json({
@@ -46,6 +51,7 @@ const authController = {
           email: user.email,
           name: user.name,
           role: user.role,
+          roleId: roleId,
         },
       });
     } catch (error) {

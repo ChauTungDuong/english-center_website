@@ -142,7 +142,7 @@ const teacherWageController = {
       // Kiểm tra quyền truy cập
       if (
         req.user.role === "Teacher" &&
-        req.user._id.toString() !== teacherId
+        req.user.roleId.toString() !== teacherId
       ) {
         return res.status(403).json({
           msg: "Bạn chỉ có thể xem lương của chính mình",

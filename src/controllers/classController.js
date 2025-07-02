@@ -34,7 +34,7 @@ const classController = {
       // Kiểm tra quyền: Teacher chỉ được xem lớp mình dạy
       if (req.user.role === "Teacher") {
         const hasPermission = await classService.checkTeacherClassPermission(
-          req.user.teacherId,
+          req.user.roleId, // Sử dụng roleId thay vì teacherId
           req.params.classId
         );
 
@@ -141,7 +141,7 @@ const classController = {
 
       // Filter by role: Teacher chỉ xem lớp mình dạy
       if (req.user.role === "Teacher") {
-        filter.teacherId = req.user.teacherId; // Giả sử user object có teacherId
+        filter.teacherId = req.user.roleId; // Sử dụng roleId thay vì teacherId
       } else if (teacherId && teacherId.trim()) {
         // Admin có thể filter theo teacherId
         filter.teacherId = teacherId;
