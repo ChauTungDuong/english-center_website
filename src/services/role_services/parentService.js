@@ -474,56 +474,8 @@ const parentService = {
     }
   },
 
-  async calculateChildPayments(parentId, month, year) {
-    // Legacy placeholder - use getChildrenUnpaidPayments instead
-    return await this.getChildrenUnpaidPayments(parentId, { month, year });
-  },
-  async updateChildRelationship(parent, newChildIds, session) {
-    const oldChildIds = parent.childId || [];
-    const newChildIdsArray = Array.isArray(newChildIds)
-      ? newChildIds
-      : newChildIds
-      ? [newChildIds]
-      : [];
-
-    // ✅ Tìm children cần remove
-    const childrenToRemove = oldChildIds.filter(
-      (oldId) =>
-        !newChildIdsArray.some((newId) => newId.toString() === oldId.toString())
-    );
-
-    // ✅ Tìm children cần add
-    const childrenToAdd = newChildIdsArray.filter(
-      (newId) =>
-        !oldChildIds.some((oldId) => oldId.toString() === newId.toString())
-    );
-
-    // ✅ Remove parent từ children cũ
-    if (childrenToRemove.length > 0) {
-      await Student.updateMany(
-        { _id: { $in: childrenToRemove } },
-        { $set: { parentId: null } },
-        { session }
-      );
-    }
-
-    // ✅ Add parent cho children mới
-    if (childrenToAdd.length > 0) {
-      // Validate children exist
-      const validChildren = await Student.find({
-        _id: { $in: childrenToAdd },
-      }).session(session);
-
-      if (validChildren.length !== childrenToAdd.length) {
-        throw new Error("Một số học sinh không tồn tại");
-      } // Update children với parent reference
-      await Student.updateMany(
-        { _id: { $in: childrenToAdd } },
-        { $set: { parentId: parent._id } },
-        { session }
-      );
-    }
-  },
+  // ❌ REMOVED: calculateChildPayments - use getChildrenUnpaidPayments instead
+  // ❌ REMOVED: updateChildRelationship - use studentParentRelationshipService instead
 
   /**
    * Lấy danh sách tất cả phụ huynh
@@ -588,93 +540,8 @@ const parentService = {
     }
   },
 
-  /**
-   * Cập nhật quan hệ Parent-Student (thay thế link/unlink)
-   * @param {String} parentId - ID của parent
-   * @param {String} studentId - ID của student
-   * @param {String} action - 'add' hoặc 'remove'
-   * @returns {Object} Updated parent với thông tin children
-   */
-  async updateChildRelationship(parentId, studentId, action) {
-    return await withTransaction(async (session) => {
-      try {
-        // Validate parent tồn tại
-        const parent = await Parent.findById(parentId).session(session);
-        if (!parent) {
-          throw new Error("Phụ huynh không tồn tại");
-        }
-
-        // Validate student tồn tại
-        const student = await Student.findById(studentId).session(session);
-        if (!student) {
-          throw new Error("Học sinh không tồn tại");
-        }
-
-        if (action === "add") {
-          // Kiểm tra student đã có parent khác chưa
-          if (student.parentId && student.parentId.toString() !== parentId) {
-            // Remove từ parent cũ
-            await Parent.findByIdAndUpdate(
-              student.parentId,
-              { $pull: { childId: studentId } },
-              { session }
-            );
-          }
-
-          // Kiểm tra parent đã có student này chưa
-          const alreadyHasChild = parent.childId.some(
-            (id) => id.toString() === studentId
-          );
-
-          if (!alreadyHasChild) {
-            // Thêm student vào parent
-            await Parent.findByIdAndUpdate(
-              parentId,
-              { $addToSet: { childId: studentId } },
-              { session }
-            );
-
-            // Cập nhật parent reference trong student
-            await Student.findByIdAndUpdate(
-              studentId,
-              { parentId: parentId },
-              { session }
-            );
-          }
-        } else if (action === "remove") {
-          // Remove student từ parent
-          await Parent.findByIdAndUpdate(
-            parentId,
-            { $pull: { childId: studentId } },
-            { session }
-          );
-
-          // Remove parent reference từ student
-          await Student.findByIdAndUpdate(
-            studentId,
-            { $unset: { parentId: 1 } },
-            { session }
-          );
-        }
-
-        // Trả về parent đã được cập nhật với thông tin children
-        const updatedParent = await Parent.findById(parentId)
-          .populate({
-            path: "childId",
-            populate: {
-              path: "userId",
-              select: "fullName email phone",
-            },
-          })
-          .session(session);
-        return updatedParent;
-      } catch (error) {
-        throw new Error(
-          `Lỗi khi cập nhật quan hệ parent-student: ${error.message}`
-        );
-      }
-    });
-  },
+  // ❌ REMOVED: Legacy updateChildRelationship - use studentParentRelationshipService instead
+  // Use: studentParentRelationshipService.updateStudentParentRelationship() for single operations
 
   /**
    * Bulk update parent-child relationships
