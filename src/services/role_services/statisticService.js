@@ -5,6 +5,8 @@ const {
   Class,
   Teacher,
   Attendance,
+  Parent,
+  Advertisement,
 } = require("../../models");
 
 const statisticService = {
@@ -47,7 +49,10 @@ const statisticService = {
     // 3. Thống kê tăng giảm học sinh theo tháng
     const studentGrowthStats = await this.getStudentGrowthStatistics(dateRange);
 
-    // 4. Thống kê tổng quan
+    // 4. Thống kê tổng số lượng entities trong hệ thống
+    const systemOverviewStats = await this.getSystemOverviewStatistics();
+
+    // 5. Thống kê tổng quan tài chính
     const totalCollected = studentPaymentStats?.summary?.totalCollected || 0;
     const totalPaid = teacherWageStats?.summary?.totalPaid || 0;
     const totalExpected = studentPaymentStats?.summary?.totalExpected || 0;
@@ -66,10 +71,11 @@ const statisticService = {
 
     return {
       period: periodInfo,
+      systemOverview: systemOverviewStats,
       teacherWages: teacherWageStats,
       studentPayments: studentPaymentStats,
       studentGrowth: studentGrowthStats,
-      overview: overviewStats,
+      financialOverview: overviewStats,
       generatedAt: new Date(),
     };
   },
@@ -529,6 +535,166 @@ const statisticService = {
     return Array.from(monthlyData.values()).sort(
       (a, b) => a.year - b.year || a.month - b.month
     );
+  },
+
+  /**
+   * Thống kê tổng số lượng các entities trong hệ thống
+   */
+  async getSystemOverviewStatistics() {
+    try {
+      // Count total entities
+      const [
+        totalStudents,
+        totalTeachers,
+        totalParents,
+        totalClasses,
+        totalAdvertisements,
+      ] = await Promise.all([
+        Student.countDocuments({}),
+        Teacher.countDocuments({}),
+        Parent.countDocuments({}),
+        Class.countDocuments({}),
+        Advertisement.countDocuments({}),
+      ]);
+
+      // Count active entities (more efficient approach)
+      const [
+        activeStudents,
+        activeTeachers,
+        activeParents,
+        activeClasses,
+        activeAdvertisements,
+      ] = await Promise.all([
+        // Active students: có userId và userId.isActive = true
+        Student.aggregate([
+          {
+            $lookup: {
+              from: "users",
+              localField: "userId",
+              foreignField: "_id",
+              as: "user"
+            }
+          },
+          {
+            $match: {
+              "user.isActive": true
+            }
+          },
+          {
+            $count: "count"
+          }
+        ]).then(result => result[0]?.count || 0),
+
+        // Active teachers
+        Teacher.aggregate([
+          {
+            $lookup: {
+              from: "users",
+              localField: "userId", 
+              foreignField: "_id",
+              as: "user"
+            }
+          },
+          {
+            $match: {
+              "user.isActive": true
+            }
+          },
+          {
+            $count: "count"
+          }
+        ]).then(result => result[0]?.count || 0),
+
+        // Active parents
+        Parent.aggregate([
+          {
+            $lookup: {
+              from: "users",
+              localField: "userId",
+              foreignField: "_id", 
+              as: "user"
+            }
+          },
+          {
+            $match: {
+              "user.isActive": true
+            }
+          },
+          {
+            $count: "count"
+          }
+        ]).then(result => result[0]?.count || 0),
+
+        // Active classes
+        Class.countDocuments({ isActive: true }),
+
+        // Active advertisements
+        Advertisement.countDocuments({ isActive: true }),
+      ]);
+
+      // Thống kê chi tiết theo role
+      const studentStats = {
+        total: totalStudents,
+        active: activeStudents,
+        inactive: totalStudents - activeStudents,
+        activePercentage: totalStudents > 0 ? ((activeStudents / totalStudents) * 100).toFixed(2) : "0.00",
+      };
+
+      const teacherStats = {
+        total: totalTeachers, 
+        active: activeTeachers,
+        inactive: totalTeachers - activeTeachers,
+        activePercentage: totalTeachers > 0 ? ((activeTeachers / totalTeachers) * 100).toFixed(2) : "0.00",
+      };
+
+      const parentStats = {
+        total: totalParents,
+        active: activeParents,
+        inactive: totalParents - activeParents,
+        activePercentage: totalParents > 0 ? ((activeParents / totalParents) * 100).toFixed(2) : "0.00",
+      };
+
+      const classStats = {
+        total: totalClasses,
+        active: activeClasses,
+        inactive: totalClasses - activeClasses,
+        activePercentage: totalClasses > 0 ? ((activeClasses / totalClasses) * 100).toFixed(2) : "0.00",
+      };
+
+      const advertisementStats = {
+        total: totalAdvertisements,
+        active: activeAdvertisements,
+        inactive: totalAdvertisements - activeAdvertisements,
+        activePercentage: totalAdvertisements > 0 ? ((activeAdvertisements / totalAdvertisements) * 100).toFixed(2) : "0.00",
+      };
+
+      // Tổng người dùng trong hệ thống
+      const totalUsers = totalStudents + totalTeachers + totalParents;
+      const totalActiveUsers = activeStudents + activeTeachers + activeParents;
+
+      const userStats = {
+        totalUsers,
+        totalActiveUsers,
+        totalInactiveUsers: totalUsers - totalActiveUsers,
+        userActivePercentage: totalUsers > 0 ? ((totalActiveUsers / totalUsers) * 100).toFixed(2) : "0.00",
+      };
+
+      return {
+        summary: {
+          totalEntities: totalUsers + totalClasses + totalAdvertisements,
+          totalActiveEntities: totalActiveUsers + activeClasses + activeAdvertisements,
+        },
+        users: userStats,
+        students: studentStats,
+        teachers: teacherStats,
+        parents: parentStats,
+        classes: classStats,
+        advertisements: advertisementStats,
+        lastUpdated: new Date(),
+      };
+    } catch (error) {
+      throw new Error(`Lỗi khi lấy thống kê tổng quan hệ thống: ${error.message}`);
+    }
   },
 };
 
