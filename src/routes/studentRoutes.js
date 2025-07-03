@@ -5,7 +5,7 @@ const { verifyRole } = require("../middleware/authMiddleware");
 
 // Các API cơ bản cho học sinh
 
-// Tạo học sinh mới (chỉ Admin)
+// Tạo học sinh mới (chỉ Admin) - có thể bao gồm parentId
 router.post("/", verifyRole(["Admin"]), studentController.createNewStudent);
 
 // Lấy danh sách tất cả học sinh (Admin có thể xem)
@@ -23,11 +23,8 @@ router.get(
 
 // Cập nhật thông tin học sinh (chỉ Admin)
 // NOTE: API này dùng để cập nhật thông tin cơ bản của học sinh
-// Để thêm lớp học cho học sinh với payment và enrollment logic đầy đủ,
-// nên sử dụng API POST /:studentId/enroll thay vì API này
-// Để cập nhật mối quan hệ phụ huynh-học sinh:
-// - Từ phía student: sử dụng API PATCH /:studentId/parent
-// - Từ phía parent (bulk): sử dụng API PATCH /parents/:parentId/children
+// Để thêm lớp học cho học sinh, sử dụng API POST /:studentId/enroll
+// Để cập nhật mối quan hệ phụ huynh-học sinh, sử dụng API PATCH /:studentId/parent
 router.patch(
   "/:studentId",
   verifyRole(["Admin"]),

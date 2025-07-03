@@ -19,19 +19,19 @@ const studentService = {
         }
 
         // Tạo student với classId là mảng rỗng - sẽ sử dụng API /enroll sau để đăng ký lớp
-        // Không nên thiết lập parentId ở đây mà nên sử dụng API /student/:id/parent sau
+        // parentId có thể được thiết lập ngay khi tạo mới hoặc sử dụng API /student/:id/parent sau
         const student = await Student.create(
           [
             {
               userId: user._id,
               classId: [], // Luôn là array rỗng khi tạo mới, sử dụng API /enroll để thêm lớp sau
-              parentId: null, // Không thiết lập parentId khi tạo mới, sử dụng API /student/:id/parent để cập nhật sau
+              parentId: null, // Sẽ được cập nhật bên dưới nếu có parentId trong request
             },
           ],
           { session }
         );
 
-        // Cập nhật mối quan hệ với parent nếu được chỉ định
+        // Cập nhật mối quan hệ với parent nếu được chỉ định (hỗ trợ one-step creation)
         if (studentFields.parentId) {
           // Sử dụng service chuyên biệt để cập nhật mối quan hệ
           await studentParentRelationshipService.updateStudentParentRelationship(
