@@ -9,6 +9,7 @@ const {
 } = require("../../models");
 const { parentUpdateFields, userUpdateFields } = require("./updateFields");
 const userService = require("./userService");
+const studentParentRelationshipService = require("../relationship_services/studentParentRelationshipService");
 
 const parentService = {
   async create(parentData) {
@@ -682,172 +683,12 @@ const parentService = {
    * @param {Array} studentIds - Array of student IDs
    * @returns {Object} Result with summary and details
    */ async updateChildRelationshipBulk(parentId, action, studentIds) {
-    return await withTransaction(async (session) => {
-      try {
-        if (
-          !parentId ||
-          !action ||
-          !Array.isArray(studentIds) ||
-          studentIds.length === 0
-        ) {
-          throw new Error("Thiếu thông tin: parentId, action và studentIds");
-        }
-
-        // 🔥 Validate ObjectId format
-        const mongoose = require("mongoose");
-        if (!mongoose.Types.ObjectId.isValid(parentId)) {
-          throw new Error(`Invalid parentId format: ${parentId}`);
-        }
-
-        // Validate parent exists
-        const parent = await Parent.findById(parentId).session(session);
-        if (!parent) {
-          throw new Error("Phụ huynh không tồn tại");
-        }
-
-        const results = [];
-        let successCount = 0;
-        let errorCount = 0; // Process each student
-        for (const currentStudentId of studentIds) {
-          try {
-            // Validate student exists
-            const student = await Student.findById(currentStudentId)
-              .populate({
-                path: "userId",
-                select: "name email",
-              })
-              .session(session);
-            if (!student) {
-              results.push({
-                studentId: currentStudentId,
-                status: "error",
-                message: "Học sinh không tồn tại",
-              });
-              errorCount++;
-              continue;
-            }
-
-            if (action === "add") {
-              // Check if already linked
-              const isAlreadyLinked = parent.childId.some(
-                (id) => id.toString() === currentStudentId
-              );
-              if (isAlreadyLinked) {
-                results.push({
-                  studentId: currentStudentId,
-                  studentName: student.userId?.name || "Unknown",
-                  status: "skipped",
-                  message: "Đã có quan hệ parent-child",
-                });
-                continue;
-              }
-
-              // Check if student already has another parent
-              if (
-                student.parentId &&
-                student.parentId.toString() !== parentId
-              ) {
-                // Remove from old parent
-                await Parent.findByIdAndUpdate(
-                  student.parentId,
-                  { $pull: { childId: currentStudentId } },
-                  { session }
-                );
-              }
-
-              // Add to new parent
-              await Parent.findByIdAndUpdate(
-                parentId,
-                { $addToSet: { childId: currentStudentId } },
-                { session }
-              );
-
-              // Update student's parentId
-              await Student.findByIdAndUpdate(
-                currentStudentId,
-                { parentId: parentId },
-                { session }
-              );
-
-              results.push({
-                studentId: currentStudentId,
-                studentName: student.userId?.name || "Unknown",
-                status: "added",
-                message: "Thêm quan hệ parent-child thành công",
-              });
-              successCount++;
-            } else if (action === "remove") {
-              // Check if relationship exists
-              const hasRelationship =
-                parent.childId.some(
-                  (id) => id.toString() === currentStudentId
-                ) && student.parentId?.toString() === parentId;
-              if (!hasRelationship) {
-                results.push({
-                  studentId: currentStudentId,
-                  studentName: student.userId?.name || "Unknown",
-                  status: "skipped",
-                  message: "Không có quan hệ parent-child để xóa",
-                });
-                continue;
-              } // Remove relationship
-              await Parent.findByIdAndUpdate(
-                parentId,
-                { $pull: { childId: currentStudentId } },
-                { session }
-              );
-
-              await Student.findByIdAndUpdate(
-                currentStudentId,
-                { $unset: { parentId: 1 } },
-                { session }
-              );
-
-              results.push({
-                studentId: currentStudentId,
-                studentName: student.userId?.name || "Unknown",
-                status: "removed",
-                message: "Xóa quan hệ parent-child thành công",
-              });
-              successCount++;
-            }
-          } catch (studentError) {
-            results.push({
-              studentId: currentStudentId,
-              status: "error",
-              message: studentError.message,
-            });
-            errorCount++;
-          }
-        } // Get updated parent data
-        const updatedParent = await Parent.findById(parentId)
-          .populate({
-            path: "userId",
-            select: "name email",
-          })
-          .populate({
-            path: "childId",
-            populate: { path: "userId", select: "name email" },
-          })
-          .session(session);
-
-        return {
-          parentId,
-          parentName: updatedParent.userId?.name || "Unknown",
-          action,
-          summary: {
-            total: studentIds.length,
-            success: successCount,
-            errors: errorCount,
-            skipped: results.filter((r) => r.status === "skipped").length,
-          },
-          results,
-          updatedParent,
-        };
-      } catch (error) {
-        throw new Error(`Lỗi khi xử lý bulk update: ${error.message}`);
-      }
-    });
+    // Sử dụng service chuyên biệt để xử lý mối quan hệ
+    return await studentParentRelationshipService.updateParentChildrenBulk(
+      parentId,
+      action,
+      studentIds
+    );
   },
 
   // Soft delete parent

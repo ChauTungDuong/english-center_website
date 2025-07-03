@@ -79,7 +79,9 @@ router.patch(
   parentController.processPaymentRequest
 );
 
-// API mới: Quản lý quan hệ Parent-Student (thay thế link/unlink)
+// API chuyên biệt: Quản lý quan hệ Parent-Student (bulk update)
+// Có thể thêm hoặc xóa nhiều học sinh cho một phụ huynh
+// Body: { "action": "add|remove", "studentIds": [...] }
 router.patch(
   "/:parentId/children",
   verifyRole(["Admin"]),

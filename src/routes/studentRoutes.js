@@ -25,10 +25,21 @@ router.get(
 // NOTE: API này dùng để cập nhật thông tin cơ bản của học sinh
 // Để thêm lớp học cho học sinh với payment và enrollment logic đầy đủ,
 // nên sử dụng API POST /:studentId/enroll thay vì API này
+// Để cập nhật mối quan hệ phụ huynh-học sinh:
+// - Từ phía student: sử dụng API PATCH /:studentId/parent
+// - Từ phía parent (bulk): sử dụng API PATCH /parents/:parentId/children
 router.patch(
   "/:studentId",
   verifyRole(["Admin"]),
   studentController.updateStudent
+);
+
+// API chuyên biệt: Cập nhật parent của một học sinh
+// Body: { "parentId": "..." } hoặc { "parentId": null } để xóa mối quan hệ
+router.patch(
+  "/:studentId/parent",
+  verifyRole(["Admin"]),
+  studentController.updateStudentParent
 );
 
 // Xóa học sinh (chỉ Admin)

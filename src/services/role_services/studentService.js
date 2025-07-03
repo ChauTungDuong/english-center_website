@@ -1,5 +1,6 @@
 const { Student, Parent, Class, Attendance } = require("../../models");
 const userService = require("./userService");
+const studentParentRelationshipService = require("../relationship_services/studentParentRelationshipService");
 
 const { userUpdateFields, studentUpdateFields } = require("./updateFields");
 const withTransaction = require("../../utils/session");
@@ -15,38 +16,49 @@ const studentService = {
         const user = await userService.create(userFields, "Student", session);
         if (user.role !== "Student") {
           throw new Error("Vai trò không hợp lệ");
-        } // Xử lý classId array để đảm bảo luôn là array (có thể rỗng)
-        let classIds = [];
-        if (studentData.classId) {
-          classIds = Array.isArray(studentData.classId)
-            ? studentData.classId
-            : [studentData.classId];
         }
 
+        // Tạo student với classId là mảng rỗng - sẽ sử dụng API /enroll sau để đăng ký lớp
+        // Không nên thiết lập parentId ở đây mà nên sử dụng API /student/:id/parent sau
         const student = await Student.create(
           [
             {
               userId: user._id,
-              classId: classIds, // Luôn là array, có thể rỗng
-              parentId: studentFields.parentId || null,
+              classId: [], // Luôn là array rỗng khi tạo mới, sử dụng API /enroll để thêm lớp sau
+              parentId: null, // Không thiết lập parentId khi tạo mới, sử dụng API /student/:id/parent để cập nhật sau
             },
           ],
           { session }
         );
+
+        // Cập nhật mối quan hệ với parent nếu được chỉ định
         if (studentFields.parentId) {
-          await Parent.findByIdAndUpdate(
+          // Sử dụng service chuyên biệt để cập nhật mối quan hệ
+          await studentParentRelationshipService.updateStudentParentRelationship(
+            student[0]._id,
             studentFields.parentId,
-            { $addToSet: { childId: student._id } },
-            { session }
+            session
           );
+
+          // Trả về student đã tạo với populate cơ bản
+          const createdStudent = await Student.findById(student[0]._id)
+            .session(session)
+            .populate({
+              path: "userId",
+              select: "name email gender phoneNumber address role isActive",
+            })
+            .populate({
+              path: "parentId",
+              select: "userId canSeeTeacher",
+              populate: {
+                path: "userId",
+                select: "name email phoneNumber",
+              },
+            });
+
+          return createdStudent;
         }
-        if (studentFields.classId) {
-          await Class.findByIdAndUpdate(
-            studentFields.classId,
-            { $addToSet: { studentList: student._id } },
-            { session }
-          );
-        }
+
         return student[0];
       } catch (error) {
         throw new Error(`Lỗi khi tạo học sinh: ${error.message}`);
@@ -79,8 +91,9 @@ const studentService = {
           studentFields.parentId !== undefined &&
           studentFields.parentId !== student.parentId?.toString()
         ) {
-          await this.updateParentRelationship(
-            student,
+          // Sử dụng service chuyên biệt để cập nhật mối quan hệ
+          await studentParentRelationshipService.updateStudentParentRelationship(
+            studentId,
             studentFields.parentId,
             session
           );
@@ -179,9 +192,12 @@ const studentService = {
 
       // Lấy thông tin điểm danh nếu học sinh có lớp học
       let attendanceInfo = null;
-      if (student.classId) {
+      if (student.classId && student.classId.length > 0) {
+        // Xử lý thông tin điểm danh cho lớp đầu tiên (hoặc có thể lặp qua tất cả các lớp nếu cần)
+        const classId = student.classId[0]._id || student.classId[0];
+
         const attendance = await Attendance.findOne({
-          classId: student.classId._id,
+          classId: classId,
         });
 
         if (attendance) {
@@ -231,30 +247,8 @@ const studentService = {
     }
   },
 
-  async updateParentRelationship(student, newParentId, session) {
-    // Remove from old parent
-    if (student.parentId) {
-      await Parent.findByIdAndUpdate(
-        student.parentId,
-        { $pull: { childId: student._id } },
-        { session }
-      );
-    }
-
-    // Add to new parent
-    if (newParentId) {
-      const newParent = await Parent.findById(newParentId).session(session);
-      if (!newParent) {
-        throw new Error("Phụ huynh không tồn tại");
-      }
-
-      await Parent.findByIdAndUpdate(
-        newParentId,
-        { $addToSet: { childId: student._id } },
-        { session }
-      );
-    }
-  },
+  // ❌ REMOVED: updateParentRelationship method - now handled by studentParentRelationshipService
+  // Use studentParentRelationshipService.updateStudentParentRelationship() instead
 
   // ❌ REMOVED: updateClassRelationship method
   // Class enrollment/withdrawal now handled by specialized APIs:

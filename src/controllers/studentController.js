@@ -1,4 +1,5 @@
 const studentService = require("../services/role_services/studentService");
+const studentParentRelationshipService = require("../services/relationship_services/studentParentRelationshipService");
 
 const studentController = {
   async createNewStudent(req, res) {
@@ -199,6 +200,36 @@ const studentController = {
     } catch (error) {
       return res.status(500).json({
         msg: "Lỗi khi xóa mềm student",
+        error: error.message,
+      });
+    }
+  },
+
+  // API chuyên biệt: Cập nhật mối quan hệ phụ huynh-học sinh
+  async updateStudentParent(req, res) {
+    try {
+      const { studentId } = req.params;
+      const { parentId } = req.body;
+
+      if (parentId === undefined) {
+        return res.status(400).json({
+          msg: "Thiếu thông tin parentId",
+        });
+      }
+
+      const result =
+        await studentParentRelationshipService.updateStudentParentRelationship(
+          studentId,
+          parentId
+        );
+
+      return res.status(200).json({
+        msg: result.message,
+        data: result,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi cập nhật mối quan hệ phụ huynh-học sinh",
         error: error.message,
       });
     }

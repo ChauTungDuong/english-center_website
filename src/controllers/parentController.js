@@ -2,6 +2,7 @@ const { Student, Parent, Payment, User } = require("../models");
 
 const parentService = require("../services/role_services/parentService");
 const parentPaymentRequestService = require("../services/role_services/parentPaymentRequestService");
+const studentParentRelationshipService = require("../services/relationship_services/studentParentRelationshipService");
 
 const parentController = {
   async createNewParent(req, res) {
@@ -175,7 +176,7 @@ const parentController = {
     }
   },
 
-  // API mới: Lấy thông tin chi tiết các con kể cả điểm danh
+  // API chuyên biệt: Lấy thông tin chi tiết các con kể cả điểm danh
   async getChildrenWithDetails(req, res) {
     try {
       const { parentId } = req.params;

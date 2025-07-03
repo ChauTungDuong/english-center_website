@@ -91,7 +91,7 @@ const classService = {
         if (studentList.length > 0) {
           await Student.updateMany(
             { _id: { $in: studentList } },
-            { $set: { classId: newClass[0]._id } },
+            { $addToSet: { classId: newClass[0]._id } },
             { session }
           );
         }
@@ -687,7 +687,7 @@ const classService = {
     if (studentsToRemove.length > 0) {
       await Student.updateMany(
         { _id: { $in: studentsToRemove } },
-        { $unset: { classId: "" } },
+        { $pull: { classId: classData._id } },
         { session }
       );
     }
@@ -708,7 +708,7 @@ const classService = {
 
       await Student.updateMany(
         { _id: { $in: studentsToAdd } },
-        { $set: { classId: classData._id } },
+        { $addToSet: { classId: classData._id } },
         { session }
       );
     }
@@ -750,7 +750,7 @@ const classService = {
         // Update student's classId
         await Student.findByIdAndUpdate(
           studentId,
-          { $set: { classId: classId } },
+          { $addToSet: { classId: classId } },
           { session }
         );
 
@@ -788,7 +788,7 @@ const classService = {
         // Update student's classId
         await Student.findByIdAndUpdate(
           studentId,
-          { $unset: { classId: "" } },
+          { $pull: { classId: classId } },
           { session }
         );
 
@@ -842,7 +842,7 @@ const classService = {
         // Cập nhật classId cho tất cả học sinh
         await Student.updateMany(
           { _id: { $in: studentIds } },
-          { $set: { classId: classId } },
+          { $addToSet: { classId: classId } },
           { session }
         );
 
@@ -882,7 +882,7 @@ const classService = {
         // Cập nhật classId cho tất cả học sinh
         await Student.updateMany(
           { _id: { $in: studentIds } },
-          { $unset: { classId: 1 } },
+          { $pull: { classId: classId } },
           { session }
         );
 
