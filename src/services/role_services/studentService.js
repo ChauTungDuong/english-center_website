@@ -142,7 +142,7 @@ const studentService = {
           );
         }
         await Student.findByIdAndDelete(studentId).session(session);
-        await userService.delete(userId).session(session);
+        await userService.delete(userId, session);
       } catch (error) {
         throw new Error(`Lỗi khi xóa học sinh: ${error.message}`);
       }
