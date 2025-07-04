@@ -1066,16 +1066,19 @@ const classService = {
         })
         .sort({ createdAt: -1 });
 
-      return students.map((student) => ({
-        _id: student._id,
-        name: student.userId?.name,
-        email: student.userId?.email,
-        phoneNumber: student.userId?.phoneNumber,
-        parentName: student.parentId?.userId?.name || "Chưa có phụ huynh",
-        parentPhone: student.parentId?.userId?.phoneNumber,
-        currentClass: student.classId?.className || "Chưa có lớp",
-        hasClass: !!student.classId,
-      }));
+      return students.map((student) => {
+        const hasValidClass = student.classId && student.classId.className;
+        return {
+          _id: student._id,
+          name: student.userId?.name,
+          email: student.userId?.email,
+          phoneNumber: student.userId?.phoneNumber,
+          parentName: student.parentId?.userId?.name || "Chưa có phụ huynh",
+          parentPhone: student.parentId?.userId?.phoneNumber,
+          currentClass: hasValidClass ? student.classId.className : "Chưa có lớp",
+          hasClass: hasValidClass,
+        };
+      });
     } catch (error) {
       throw new Error(
         `Lỗi khi lấy danh sách học sinh available: ${error.message}`
