@@ -180,11 +180,50 @@ const parentController = {
   async getChildrenWithDetails(req, res) {
     try {
       const { parentId } = req.params;
-      const children = await parentService.getChildrenWithDetails(parentId);
-      return res.status(200).json({
-        msg: "Lấy thông tin chi tiết các con thành công",
-        data: children,
-      });
+      const currentUserId = req.user.id;
+      const currentUserRole = req.user.role;
+
+      // Kiểm tra quyền sở hữu: Parent chỉ có thể xem thông tin con của mình
+      if (currentUserRole === "Parent") {
+        // Lấy parent record dựa trên userId từ token
+        const currentParent = await Parent.findOne({ userId: currentUserId });
+        if (!currentParent) {
+          return res.status(404).json({
+            msg: "Không tìm thấy thông tin phụ huynh",
+          });
+        }
+
+        // Sử dụng parentId từ token thay vì từ params
+        const tokenParentId = currentParent._id.toString();
+
+        // Nếu có parentId trong params, kiểm tra có khớp với token không
+        if (parentId && parentId !== tokenParentId) {
+          return res.status(403).json({
+            msg: "Bạn chỉ có thể xem thông tin con của mình",
+          });
+        }
+
+        // Sử dụng parentId từ token để lấy data
+        const children = await parentService.getChildrenWithDetails(
+          tokenParentId
+        );
+        return res.status(200).json({
+          msg: "Lấy thông tin chi tiết các con thành công",
+          data: children,
+        });
+      }
+      // Admin có thể xem bất kỳ parent nào
+      else if (currentUserRole === "Admin") {
+        const children = await parentService.getChildrenWithDetails(parentId);
+        return res.status(200).json({
+          msg: "Lấy thông tin chi tiết các con thành công",
+          data: children,
+        });
+      } else {
+        return res.status(403).json({
+          msg: "Bạn không có quyền truy cập API này",
+        });
+      }
     } catch (error) {
       return res.status(500).json({
         msg: "Lỗi khi lấy thông tin chi tiết các con",
@@ -198,16 +237,59 @@ const parentController = {
     try {
       const { parentId } = req.params;
       const { month, year } = req.query;
+      const currentUserId = req.user.id;
+      const currentUserRole = req.user.role;
 
-      const result = await parentService.getChildrenUnpaidPayments(parentId, {
-        month,
-        year,
-      });
+      // Kiểm tra quyền sở hữu: Parent chỉ có thể xem thông tin học phí con của mình
+      if (currentUserRole === "Parent") {
+        // Lấy parent record dựa trên userId từ token
+        const currentParent = await Parent.findOne({ userId: currentUserId });
+        if (!currentParent) {
+          return res.status(404).json({
+            msg: "Không tìm thấy thông tin phụ huynh",
+          });
+        }
 
-      return res.status(200).json({
-        msg: "Lấy thông tin học phí chưa đóng thành công",
-        data: result,
-      });
+        // Sử dụng parentId từ token thay vì từ params
+        const tokenParentId = currentParent._id.toString();
+
+        // Nếu có parentId trong params, kiểm tra có khớp với token không
+        if (parentId && parentId !== tokenParentId) {
+          return res.status(403).json({
+            msg: "Bạn chỉ có thể xem thông tin học phí con của mình",
+          });
+        }
+
+        // Sử dụng parentId từ token để lấy data
+        const result = await parentService.getChildrenUnpaidPayments(
+          tokenParentId,
+          {
+            month,
+            year,
+          }
+        );
+
+        return res.status(200).json({
+          msg: "Lấy thông tin học phí chưa đóng thành công",
+          data: result,
+        });
+      }
+      // Admin có thể xem bất kỳ parent nào
+      else if (currentUserRole === "Admin") {
+        const result = await parentService.getChildrenUnpaidPayments(parentId, {
+          month,
+          year,
+        });
+
+        return res.status(200).json({
+          msg: "Lấy thông tin học phí chưa đóng thành công",
+          data: result,
+        });
+      } else {
+        return res.status(403).json({
+          msg: "Bạn không có quyền truy cập API này",
+        });
+      }
     } catch (error) {
       return res.status(500).json({
         msg: "Lỗi khi lấy thông tin học phí chưa đóng",
@@ -218,27 +300,77 @@ const parentController = {
   async createPaymentRequest(req, res) {
     try {
       const { parentId } = req.params;
+      const currentUserId = req.user.id;
+      const currentUserRole = req.user.role;
 
-      // Với .fields(), file sẽ ở trong req.files
-      const uploadedFile =
-        req.files && req.files["proof"] ? req.files["proof"][0] : null;
+      // Kiểm tra quyền sở hữu: Parent chỉ có thể tạo yêu cầu thanh toán cho mình
+      if (currentUserRole === "Parent") {
+        // Lấy parent record dựa trên userId từ token
+        const currentParent = await Parent.findOne({ userId: currentUserId });
+        if (!currentParent) {
+          return res.status(404).json({
+            msg: "Không tìm thấy thông tin phụ huynh",
+          });
+        }
 
-      const requestData = {
-        ...req.body,
-        parentId,
-        uploadedFile, // File từ multer middleware
-      };
+        // Sử dụng parentId từ token thay vì từ params
+        const tokenParentId = currentParent._id.toString();
 
-      const paymentRequest =
-        await parentPaymentRequestService.createPaymentRequest(
-          requestData,
-          req
-        );
+        // Nếu có parentId trong params, kiểm tra có khớp với token không
+        if (parentId && parentId !== tokenParentId) {
+          return res.status(403).json({
+            msg: "Bạn chỉ có thể tạo yêu cầu thanh toán cho mình",
+          });
+        }
 
-      return res.status(201).json({
-        msg: "Tạo yêu cầu thanh toán thành công",
-        data: paymentRequest,
-      });
+        // Với .fields(), file sẽ ở trong req.files
+        const uploadedFile =
+          req.files && req.files["proof"] ? req.files["proof"][0] : null;
+
+        const requestData = {
+          ...req.body,
+          parentId: tokenParentId, // Sử dụng parentId từ token
+          uploadedFile, // File từ multer middleware
+        };
+
+        const paymentRequest =
+          await parentPaymentRequestService.createPaymentRequest(
+            requestData,
+            req
+          );
+
+        return res.status(201).json({
+          msg: "Tạo yêu cầu thanh toán thành công",
+          data: paymentRequest,
+        });
+      }
+      // Admin có thể tạo yêu cầu cho bất kỳ parent nào
+      else if (currentUserRole === "Admin") {
+        // Với .fields(), file sẽ ở trong req.files
+        const uploadedFile =
+          req.files && req.files["proof"] ? req.files["proof"][0] : null;
+
+        const requestData = {
+          ...req.body,
+          parentId,
+          uploadedFile, // File từ multer middleware
+        };
+
+        const paymentRequest =
+          await parentPaymentRequestService.createPaymentRequest(
+            requestData,
+            req
+          );
+
+        return res.status(201).json({
+          msg: "Tạo yêu cầu thanh toán thành công",
+          data: paymentRequest,
+        });
+      } else {
+        return res.status(403).json({
+          msg: "Bạn không có quyền truy cập API này",
+        });
+      }
     } catch (error) {
       return res.status(500).json({
         msg: "Lỗi khi tạo yêu cầu thanh toán",
@@ -252,21 +384,65 @@ const parentController = {
     try {
       const { parentId } = req.params;
       const { status, page, limit } = req.query;
+      const currentUserId = req.user.id;
+      const currentUserRole = req.user.role;
 
-      const result = await parentPaymentRequestService.getParentPaymentRequests(
-        parentId,
-        {
-          status,
-          page: page ? parseInt(page) : 1,
-          limit: limit ? parseInt(limit) : 10,
+      // Kiểm tra quyền sở hữu: Parent chỉ có thể xem yêu cầu thanh toán của mình
+      if (currentUserRole === "Parent") {
+        // Lấy parent record dựa trên userId từ token
+        const currentParent = await Parent.findOne({ userId: currentUserId });
+        if (!currentParent) {
+          return res.status(404).json({
+            msg: "Không tìm thấy thông tin phụ huynh",
+          });
         }
-      );
 
-      return res.status(200).json({
-        msg: "Lấy danh sách yêu cầu thanh toán thành công",
-        data: result.requests,
-        pagination: result.pagination,
-      });
+        // Sử dụng parentId từ token thay vì từ params
+        const tokenParentId = currentParent._id.toString();
+
+        // Nếu có parentId trong params, kiểm tra có khớp với token không
+        if (parentId && parentId !== tokenParentId) {
+          return res.status(403).json({
+            msg: "Bạn chỉ có thể xem yêu cầu thanh toán của mình",
+          });
+        }
+
+        // Sử dụng parentId từ token để lấy data
+        const result =
+          await parentPaymentRequestService.getParentPaymentRequests(
+            tokenParentId,
+            {
+              status,
+              page: page ? parseInt(page) : 1,
+              limit: limit ? parseInt(limit) : 10,
+            }
+          );
+
+        return res.status(200).json({
+          msg: "Lấy danh sách yêu cầu thanh toán thành công",
+          data: result.requests,
+          pagination: result.pagination,
+        });
+      }
+      // Admin có thể xem bất kỳ parent nào
+      else if (currentUserRole === "Admin") {
+        const result =
+          await parentPaymentRequestService.getParentPaymentRequests(parentId, {
+            status,
+            page: page ? parseInt(page) : 1,
+            limit: limit ? parseInt(limit) : 10,
+          });
+
+        return res.status(200).json({
+          msg: "Lấy danh sách yêu cầu thanh toán thành công",
+          data: result.requests,
+          pagination: result.pagination,
+        });
+      } else {
+        return res.status(403).json({
+          msg: "Bạn không có quyền truy cập API này",
+        });
+      }
     } catch (error) {
       return res.status(500).json({
         msg: "Lỗi khi lấy danh sách yêu cầu thanh toán",

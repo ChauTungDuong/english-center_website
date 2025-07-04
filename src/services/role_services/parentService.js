@@ -263,9 +263,10 @@ const parentService = {
           totalAttended: 0,
         }; // Lấy thông tin điểm danh cho từng lớp
         for (const classInfo of child.classId || []) {
-          const attendance = await Attendance.findOne({
+          // Tìm tất cả các attendance records cho lớp này
+          const attendanceRecords = await Attendance.find({
             classId: classInfo._id,
-          });
+          }).sort({ date: 1 }); // Sắp xếp theo ngày
 
           let classLessons = 0;
           let classAbsent = 0;
@@ -273,8 +274,8 @@ const parentService = {
           let absentDates = []; // Danh sách ngày nghỉ cụ thể
           let attendanceDetails = []; // Chi tiết từng buổi học
 
-          if (attendance && attendance.records) {
-            attendance.records.forEach((record) => {
+          if (attendanceRecords && attendanceRecords.length > 0) {
+            attendanceRecords.forEach((record) => {
               const studentRecord = record.students.find(
                 (s) => s.studentId.toString() === child._id.toString()
               );
