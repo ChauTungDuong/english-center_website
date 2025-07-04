@@ -1,4 +1,5 @@
 const Advertisement = require("../../models/Advertisement");
+const cloudinaryService = require("../cloudinaryService");
 
 const advertisementService = {
   // Get all active advertisements for public view
