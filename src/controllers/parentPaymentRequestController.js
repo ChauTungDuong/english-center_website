@@ -1,23 +1,30 @@
 const parentPaymentRequestService = require("../services/role_services/parentPaymentRequestService");
 
 const parentPaymentRequestController = {
-  // Lấy tất cả yêu cầu thanh toán (cho admin)
+  // Lấy tất cả yêu cầu thanh toán (cho admin) - Simplified filtering
   async getAllPaymentRequests(req, res) {
     try {
-      const { status, page, limit, parentId, studentId } = req.query;
+      const filters = {
+        status: req.query.status, // 'pending', 'approved', 'rejected'
+        page: req.query.page ? parseInt(req.query.page) : 1,
+        limit: req.query.limit ? parseInt(req.query.limit) : 10,
+        parentId: req.query.parentId,
+        studentId: req.query.studentId,
+        month: req.query.month,
+        year: req.query.year,
+        sortBy: req.query.sortBy || "requestDate",
+        sortOrder: req.query.sortOrder || "desc",
+      };
 
-      const result = await parentPaymentRequestService.getAllPaymentRequests({
-        status,
-        page: page ? parseInt(page) : 1,
-        limit: limit ? parseInt(limit) : 10,
-        parentId,
-        studentId,
-      });
+      const result = await parentPaymentRequestService.getAllPaymentRequests(
+        filters
+      );
 
       return res.status(200).json({
         msg: "Lấy danh sách yêu cầu thanh toán thành công",
         data: result.requests,
         pagination: result.pagination,
+        summary: result.summary,
       });
     } catch (error) {
       return res.status(500).json({

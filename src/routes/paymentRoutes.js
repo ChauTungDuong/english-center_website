@@ -19,4 +19,28 @@ router.get(
   paymentController.getStudentPayments
 );
 
+// Get all payments with filtering (Admin xem toàn bộ bản ghi học phí)
+router.get("/", verifyRole(["Admin"]), paymentController.getAllPayments);
+
+// Get payment by ID (Admin xem chi tiết một bản ghi học phí)
+router.get(
+  "/:paymentId",
+  verifyRole(["Admin"]),
+  paymentController.getPaymentById
+);
+
+// Update payment (Admin sửa bản ghi học phí)
+router.patch(
+  "/:paymentId",
+  verifyRole(["Admin"]),
+  paymentController.updatePayment
+);
+
+// Delete payment (Admin xóa bản ghi học phí)
+router.delete(
+  "/:paymentId",
+  verifyRole(["Admin"]),
+  paymentController.deletePayment
+);
+
 module.exports = router;

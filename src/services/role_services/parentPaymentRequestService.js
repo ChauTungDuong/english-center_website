@@ -6,6 +6,7 @@ const {
   Student,
 } = require("../../models");
 const cloudinaryService = require("../cloudinaryService");
+const imageService = require("../shared/imageService");
 
 const parentPaymentRequestService = {
   /**
@@ -211,20 +212,37 @@ const parentPaymentRequestService = {
   },
 
   /**
-   * Lấy tất cả yêu cầu thanh toán (cho admin)
-   * @param {Object} filters - Bộ lọc
+   * Lấy tất cả yêu cầu thanh toán (cho admin) - Simplified filtering
+   * @param {Object} filters - Bộ lọc: parentId, studentId, month, year, status
    * @returns {Object} Danh sách yêu cầu thanh toán và pagination
    */
   async getAllPaymentRequests(filters = {}) {
     try {
-      const { status, page = 1, limit = 10, parentId, studentId } = filters;
+      const {
+        status,
+        page = 1,
+        limit = 10,
+        parentId,
+        studentId,
+        month,
+        year,
+        sortBy = "requestDate",
+        sortOrder = "desc",
+      } = filters;
       const skip = (page - 1) * limit;
 
       const filter = {};
-      if (status) filter.status = status;
+      if (status && ["pending", "approved", "rejected"].includes(status)) {
+        filter.status = status;
+      }
       if (parentId) filter.parentId = parentId;
       if (studentId) filter.studentId = studentId;
 
+      // Build sort object
+      const sort = {};
+      sort[sortBy] = sortOrder === "desc" ? -1 : 1;
+
+      // Execute query with population
       const requests = await ParentPaymentRequest.find(filter)
         .populate("parentId", "userId")
         .populate({
@@ -241,13 +259,28 @@ const parentPaymentRequestService = {
           path: "paymentId",
           populate: { path: "classId", select: "className grade" },
         })
-        .sort({ requestDate: -1 })
+        .sort(sort)
         .skip(skip)
         .limit(limit);
+
       const total = await ParentPaymentRequest.countDocuments(filter);
 
-      // Format requests với ảnh Base64 cho Admin
-      const formattedRequests = requests.map((request) => {
+      // Apply month/year filter if provided (filter by payment month/year)
+      let filteredRequests = requests;
+      if (month || year) {
+        filteredRequests = requests.filter((request) => {
+          const paymentMonth = request.paymentId?.month;
+          const paymentYear = request.paymentId?.year;
+
+          if (month && paymentMonth !== parseInt(month)) return false;
+          if (year && paymentYear !== parseInt(year)) return false;
+
+          return true;
+        });
+      }
+
+      // Format requests với ảnh cho Admin
+      const formattedRequests = filteredRequests.map((request) => {
         const requestObj = request.toObject();
 
         // Thêm imageDataUrl nếu có ảnh sử dụng shared image service
@@ -271,6 +304,22 @@ const parentPaymentRequestService = {
           total: Math.ceil(total / limit),
           count: formattedRequests.length,
           totalRecords: total,
+        },
+        summary: {
+          totalRequests: total,
+          filteredCount: filteredRequests.length,
+          pendingCount: formattedRequests.filter((r) => r.status === "pending")
+            .length,
+          approvedCount: formattedRequests.filter(
+            (r) => r.status === "approved"
+          ).length,
+          rejectedCount: formattedRequests.filter(
+            (r) => r.status === "rejected"
+          ).length,
+          totalAmount: formattedRequests.reduce(
+            (sum, r) => sum + (r.amount || 0),
+            0
+          ),
         },
       };
     } catch (error) {
@@ -310,7 +359,9 @@ const parentPaymentRequestService = {
 
         if (request.status !== "pending") {
           throw new Error("Yêu cầu thanh toán đã được xử lý trước đó");
-        } // Update request status
+        }
+
+        // Update request status
         request.status = action;
         request.adminNote = adminNote;
         if (processedBy) {
@@ -328,7 +379,9 @@ const parentPaymentRequestService = {
 
           if (!payment) {
             throw new Error("Không tìm thấy thông tin học phí");
-          } // Add to payment history
+          }
+
+          // Add to payment history
           payment.paymentHistory.push({
             amount: request.amount,
             paymentMethod: "parent_request", // Fixed method for parent requests
@@ -403,7 +456,7 @@ const parentPaymentRequestService = {
     } catch (error) {
       throw new Error(`Lỗi khi lấy yêu cầu thanh toán: ${error.message}`);
     }
-  },
+  }
 };
 
 module.exports = parentPaymentRequestService;
