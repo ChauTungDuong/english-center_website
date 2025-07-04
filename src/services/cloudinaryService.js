@@ -198,6 +198,19 @@ class CloudinaryService {
   }
 
   /**
+   * Get original quality URL (no compression or resizing)
+   * @param {String} publicId - Public ID of the image
+   * @returns {String} Original quality URL
+   */
+  getOriginalUrl(publicId) {
+    return cloudinary.url(publicId, {
+      secure: true,
+      quality: "100", // Maximum quality
+      fetch_format: "auto", // Let Cloudinary choose best format
+    });
+  }
+
+  /**
    * Extract public ID from Cloudinary URL
    * @param {String} url - Cloudinary URL
    * @returns {String} Public ID

@@ -8,6 +8,12 @@ const router = express.Router();
 // Người dùng khác (không đăng nhập): Xem được các quảng cáo admin đăng
 router.get("/public", advertisementController.getPublicAdvertisements);
 
+// Người dùng khác (không đăng nhập): Xem chi tiết quảng cáo
+router.get(
+  "/public/:advertisementId",
+  advertisementController.getPublicAdvertisementById
+);
+
 // Admin Routes (cần đăng nhập và role Admin)
 // Admin: Tạo mới quảng cáo (có kèm ảnh)
 router.post(

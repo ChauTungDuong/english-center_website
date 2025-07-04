@@ -192,42 +192,83 @@ const studentService = {
 
       // Lấy thông tin điểm danh nếu học sinh có lớp học
       let attendanceInfo = null;
-      if (student.classId && student.classId.length > 0) {
-        // Xử lý thông tin điểm danh cho lớp đầu tiên (hoặc có thể lặp qua tất cả các lớp nếu cần)
-        const classId = student.classId[0]._id || student.classId[0];
 
-        const attendance = await Attendance.findOne({
-          classId: classId,
-        });
+      // Kiểm tra an toàn classId
+      const classIds = student.classId || [];
+      if (Array.isArray(classIds) && classIds.length > 0) {
+        // Xử lý thông tin điểm danh cho lớp đầu tiên
+        const firstClass = classIds[0];
+        const classId = firstClass?._id || firstClass;
 
-        if (attendance) {
-          let totalLessons = attendance.records.length;
-          let absentLessons = 0;
-          let attendedLessons = 0;
+        if (classId) {
+          try {
+            const attendance = await Attendance.findOne({
+              classId: classId,
+            });
 
-          // Đếm số buổi học và buổi nghỉ
-          attendance.records.forEach((record) => {
-            const studentRecord = record.students.find(
-              (s) => s.studentId.toString() === studentId
-            );
+            if (
+              attendance &&
+              attendance.records &&
+              Array.isArray(attendance.records)
+            ) {
+              let totalLessons = attendance.records.length;
+              let absentLessons = 0;
+              let attendedLessons = 0;
 
-            if (studentRecord && studentRecord.isAbsent) {
-              absentLessons++;
+              // Đếm số buổi học và buổi nghỉ
+              attendance.records.forEach((record) => {
+                // Kiểm tra an toàn record.students
+                if (
+                  record &&
+                  record.students &&
+                  Array.isArray(record.students)
+                ) {
+                  const studentRecord = record.students.find(
+                    (s) =>
+                      s && s.studentId && s.studentId.toString() === studentId
+                  );
+
+                  if (studentRecord && studentRecord.isAbsent) {
+                    absentLessons++;
+                  } else if (studentRecord) {
+                    attendedLessons++;
+                  }
+                }
+              });
+
+              attendanceInfo = {
+                totalLessons,
+                attendedLessons,
+                absentLessons,
+                attendanceRate:
+                  totalLessons > 0
+                    ? ((attendedLessons / totalLessons) * 100).toFixed(2) + "%"
+                    : "0%",
+              };
             } else {
-              attendedLessons++;
+              // Attendance không tồn tại hoặc không có records
+              attendanceInfo = {
+                totalLessons: 0,
+                attendedLessons: 0,
+                absentLessons: 0,
+                attendanceRate: "0%",
+              };
             }
-          });
-
-          attendanceInfo = {
-            totalLessons,
-            attendedLessons,
-            absentLessons,
-            attendanceRate:
-              totalLessons > 0
-                ? ((attendedLessons / totalLessons) * 100).toFixed(2) + "%"
-                : "0%",
-          };
+          } catch (attendanceError) {
+            console.error(
+              `Error fetching attendance for student ${studentId}:`,
+              attendanceError
+            );
+            // Fallback nếu có lỗi khi lấy attendance
+            attendanceInfo = {
+              totalLessons: 0,
+              attendedLessons: 0,
+              absentLessons: 0,
+              attendanceRate: "0%",
+            };
+          }
         } else {
+          // ClassId không hợp lệ
           attendanceInfo = {
             totalLessons: 0,
             attendedLessons: 0,
@@ -235,6 +276,14 @@ const studentService = {
             attendanceRate: "0%",
           };
         }
+      } else {
+        // Học sinh chưa có lớp học nào
+        attendanceInfo = {
+          totalLessons: 0,
+          attendedLessons: 0,
+          absentLessons: 0,
+          attendanceRate: "0%",
+        };
       }
 
       // Trả về thông tin đầy đủ
@@ -670,23 +719,41 @@ const studentService = {
   },
 
   /**
-   * Helper: Ước tính số buổi học trong tháng
+   * Helper: Ước tính số buổi học trong tháng (có tính đến startDate/endDate của class)
    */
   estimateLessonsInMonth(schedule, month, year) {
     try {
-      const { daysOfLessonInWeek } = schedule;
+      const { daysOfLessonInWeek, startDate, endDate } = schedule;
       if (!daysOfLessonInWeek || daysOfLessonInWeek.length === 0) {
         return 4; // Default fallback: 4 buổi/tháng
       }
 
-      // Đếm số ngày học trong tháng
-      const firstDay = new Date(year, month - 1, 1);
-      const lastDay = new Date(year, month, 0);
-      let lessonCount = 0;
+      // Xác định khoảng thời gian cần tính
+      const monthStart = new Date(year, month - 1, 1);
+      const monthEnd = new Date(year, month, 0);
 
+      // Giới hạn bởi startDate và endDate của class
+      const classStart = new Date(startDate);
+      const classEnd = new Date(endDate);
+
+      // Tìm khoảng thời gian giao nhau
+      const actualStart = new Date(
+        Math.max(monthStart.getTime(), classStart.getTime())
+      );
+      const actualEnd = new Date(
+        Math.min(monthEnd.getTime(), classEnd.getTime())
+      );
+
+      // Nếu không có giao nhau, return 0
+      if (actualStart > actualEnd) {
+        return 0;
+      }
+
+      // Đếm số ngày học trong khoảng thời gian thực tế
+      let lessonCount = 0;
       for (
-        let date = new Date(firstDay);
-        date <= lastDay;
+        let date = new Date(actualStart);
+        date <= actualEnd;
         date.setDate(date.getDate() + 1)
       ) {
         const dayOfWeek = date.getDay();
@@ -695,7 +762,7 @@ const studentService = {
         }
       }
 
-      return lessonCount > 0 ? lessonCount : 4; // Fallback nếu không tính được
+      return lessonCount;
     } catch (error) {
       console.error("Error estimating lessons:", error);
       return 4; // Default fallback: 4 buổi/tháng

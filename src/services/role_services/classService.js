@@ -1075,7 +1075,9 @@ const classService = {
           phoneNumber: student.userId?.phoneNumber,
           parentName: student.parentId?.userId?.name || "Chưa có phụ huynh",
           parentPhone: student.parentId?.userId?.phoneNumber,
-          currentClass: hasValidClass ? student.classId.className : "Chưa có lớp",
+          currentClass: hasValidClass
+            ? student.classId.className
+            : "Chưa có lớp",
           hasClass: hasValidClass,
         };
       });
@@ -1475,27 +1477,45 @@ const classService = {
   },
 
   /**
-   * Ước tính số buổi học trong tháng dựa trên class schedule
-   * @param {Object} schedule - Class schedule
+   * Ước tính số buổi học trong tháng dựa trên class schedule (có tính đến startDate/endDate)
+   * @param {Object} schedule - Class schedule (startDate, endDate, daysOfLessonInWeek)
    * @param {Number} month - Tháng (1-12)
    * @param {Number} year - Năm
    * @returns {Number} Số buổi học ước tính
    */
   estimateLessonsInMonth(schedule, month, year) {
     try {
-      const { daysOfLessonInWeek } = schedule;
+      const { daysOfLessonInWeek, startDate, endDate } = schedule;
       if (!daysOfLessonInWeek || daysOfLessonInWeek.length === 0) {
         return 4; // Default fallback: 4 buổi/tháng
       }
 
-      // Đếm số ngày học trong tháng
-      const firstDay = new Date(year, month - 1, 1);
-      const lastDay = new Date(year, month, 0);
-      let lessonCount = 0;
+      // Xác định khoảng thời gian cần tính
+      const monthStart = new Date(year, month - 1, 1);
+      const monthEnd = new Date(year, month, 0);
 
+      // Giới hạn bởi startDate và endDate của class
+      const classStart = new Date(startDate);
+      const classEnd = new Date(endDate);
+
+      // Tìm khoảng thời gian giao nhau
+      const actualStart = new Date(
+        Math.max(monthStart.getTime(), classStart.getTime())
+      );
+      const actualEnd = new Date(
+        Math.min(monthEnd.getTime(), classEnd.getTime())
+      );
+
+      // Nếu không có giao nhau, return 0
+      if (actualStart > actualEnd) {
+        return 0;
+      }
+
+      // Đếm số ngày học trong khoảng thời gian thực tế
+      let lessonCount = 0;
       for (
-        let date = new Date(firstDay);
-        date <= lastDay;
+        let date = new Date(actualStart);
+        date <= actualEnd;
         date.setDate(date.getDate() + 1)
       ) {
         const dayOfWeek = date.getDay();
@@ -1504,7 +1524,7 @@ const classService = {
         }
       }
 
-      return lessonCount > 0 ? lessonCount : 4; // Fallback nếu không tính được
+      return lessonCount;
     } catch (error) {
       console.error("Error estimating lessons:", error);
       return 4; // Default fallback: 4 buổi/tháng

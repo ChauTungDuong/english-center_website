@@ -22,11 +22,13 @@ const advertisementService = {
       const optimizedAdvertisements = advertisements.map((ad) => {
         const optimizedImages = ad.images
           ? ad.images.slice(0, 2).map((img) => ({
-              url: img.url,
+              url: cloudinaryService.getOriginalUrl(img.public_id), // Original quality
               // Tạo thumbnail nhỏ hơn cho public view
-              thumbnailUrl: img.url
-                ? img.url.replace("/upload/", "/upload/w_400,h_250,c_fill/")
-                : null,
+              thumbnailUrl: cloudinaryService.getThumbnailUrl(img.public_id, {
+                width: 400,
+                height: 250,
+                crop: "fill",
+              }),
             }))
           : [];
 
@@ -44,6 +46,47 @@ const advertisementService = {
       return optimizedAdvertisements;
     } catch (error) {
       throw new Error(`Failed to get public advertisements: ${error.message}`);
+    }
+  },
+
+  // Get public advertisement by ID (active only, full details)
+  getPublicAdvertisementById: async (id) => {
+    try {
+      const advertisement = await Advertisement.findOne({
+        _id: id,
+        isActive: true,
+        $or: [
+          { endDate: { $gte: new Date() } }, // endDate still valid
+          { endDate: null }, // no end date
+        ],
+      })
+        .select("title content images startDate endDate createdAt")
+        .lean();
+
+      if (!advertisement) {
+        return null;
+      }
+
+      // Transform images to include both original and thumbnail URLs
+      const transformedAd = {
+        ...advertisement,
+        images: (advertisement.images || []).map((img) => ({
+          url: cloudinaryService.getOriginalUrl(img.public_id), // Original high-quality URL
+          thumbnailUrl: cloudinaryService.getThumbnailUrl(img.public_id, {
+            width: 400,
+            height: 250,
+            crop: "fill",
+          }),
+          public_id: img.public_id,
+          format: img.format,
+        })),
+      };
+
+      return transformedAd;
+    } catch (error) {
+      throw new Error(
+        `Failed to get public advertisement by ID: ${error.message}`
+      );
     }
   },
 
@@ -82,13 +125,15 @@ const advertisementService = {
       const optimizedAdvertisements = advertisements.map((ad) => {
         const optimizedImages = ad.images
           ? ad.images.slice(0, 3).map((img) => ({
-              url: img.url,
+              url: cloudinaryService.getOriginalUrl(img.public_id), // Original quality
               public_id: img.public_id,
               format: img.format,
               // Tạo thumbnail URL cho Cloudinary
-              thumbnailUrl: img.url
-                ? img.url.replace("/upload/", "/upload/w_300,h_200,c_fill/")
-                : null,
+              thumbnailUrl: cloudinaryService.getThumbnailUrl(img.public_id, {
+                width: 300,
+                height: 200,
+                crop: "fill",
+              }),
             }))
           : [];
 
@@ -120,8 +165,23 @@ const advertisementService = {
   // Get advertisement by ID
   getAdvertisementById: async (id) => {
     try {
-      const advertisement = await Advertisement.findById(id);
-      return advertisement;
+      const advertisement = await Advertisement.findById(id).lean();
+
+      if (!advertisement) {
+        return null;
+      }
+
+      // Transform images to include original quality URLs
+      const transformedAd = {
+        ...advertisement,
+        images: (advertisement.images || []).map((img) => ({
+          url: cloudinaryService.getOriginalUrl(img.public_id), // Original quality
+          public_id: img.public_id,
+          format: img.format,
+        })),
+      };
+
+      return transformedAd;
     } catch (error) {
       throw new Error(`Failed to get advertisement by ID: ${error.message}`);
     }

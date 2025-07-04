@@ -21,6 +21,37 @@ const getPublicAdvertisements = async (req, res) => {
   }
 };
 
+// Public access - Get advertisement details by ID (no authentication required)
+// GET /api/advertisements/public/:advertisementId
+const getPublicAdvertisementById = async (req, res) => {
+  try {
+    const { advertisementId } = req.params;
+    const advertisement = await advertisementService.getPublicAdvertisementById(
+      advertisementId
+    );
+
+    if (!advertisement) {
+      return res.status(404).json({
+        success: false,
+        message: "Advertisement not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: advertisement,
+      message: "Advertisement retrieved successfully",
+    });
+  } catch (error) {
+    console.error("Error getting public advertisement by ID:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve advertisement",
+      error: error.message,
+    });
+  }
+};
+
 // Admin only - Get all advertisements with pagination and filtering
 // GET /api/advertisements
 const getAllAdvertisements = async (req, res) => {
@@ -342,6 +373,7 @@ const deleteAdvertisement = async (req, res) => {
 
 module.exports = {
   getPublicAdvertisements,
+  getPublicAdvertisementById,
   getAllAdvertisements,
   getAdvertisementById,
   createAdvertisement,
