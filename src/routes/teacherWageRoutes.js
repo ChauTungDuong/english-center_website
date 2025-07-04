@@ -43,8 +43,8 @@ router.patch(
 
 // API: Teacher xem lương của mình (cả đã trả và chưa trả)
 router.get(
-  "/teacher/:teacherId",
-  verifyRole(["Admin", "Teacher"]),
+  "/teacher/my-wages",
+  verifyRole(["Teacher"]),
   teacherWageController.getTeacherWagesByTeacher
 );
 

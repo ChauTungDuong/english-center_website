@@ -136,18 +136,17 @@ const teacherWageController = {
   // API: Teacher xem lương của mình (cả đã trả và chưa trả)
   async getTeacherWagesByTeacher(req, res) {
     try {
-      const { teacherId } = req.params;
       const { month, year, paymentStatus, page, limit } = req.query;
 
-      // Kiểm tra quyền truy cập
-      if (
-        req.user.role === "Teacher" &&
-        req.user.roleId.toString() !== teacherId
-      ) {
+      // Kiểm tra quyền truy cập - chỉ Teacher mới được dùng API này
+      if (req.user.role !== "Teacher") {
         return res.status(403).json({
-          msg: "Bạn chỉ có thể xem lương của chính mình",
+          msg: "Chỉ giáo viên mới có thể sử dụng API này",
         });
       }
+
+      // Sử dụng roleId từ token thay vì teacherId từ params
+      const teacherId = req.user.roleId;
 
       const result = await teacherWageService.getAllWageRecords(
         {
