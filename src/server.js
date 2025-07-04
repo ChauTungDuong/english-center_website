@@ -38,8 +38,9 @@ app.use(
 
 // app.use(express.static(path.join("./src", "public")));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Tăng giới hạn JSON payload và thêm timeout
+app.use(express.json({ limit: "10mb" })); // Tăng từ default 100kb lên 10mb
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Routes với prefix /v1/api/
 app.use("/v1/api", router);

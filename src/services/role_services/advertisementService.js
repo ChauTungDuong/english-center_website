@@ -8,10 +8,40 @@ const advertisementService = {
       const advertisements = await Advertisement.find({
         isActive: true,
         startDate: { $lte: now },
-        endDate: { $gte: now },
-      }).sort({ createdAt: -1 });
+        $or: [
+          { endDate: { $gte: now } },
+          { endDate: null }, // Quảng cáo không có ngày kết thúc
+        ],
+      })
+        .select("title content startDate endDate images createdAt") // Chỉ select field cần thiết
+        .sort({ createdAt: -1 })
+        .limit(10) // Giới hạn tối đa 10 quảng cáo public
+        .lean(); // Tăng performance
 
-      return advertisements;
+      // Tối ưu ảnh cho public view
+      const optimizedAdvertisements = advertisements.map((ad) => {
+        const optimizedImages = ad.images
+          ? ad.images.slice(0, 2).map((img) => ({
+              url: img.url,
+              // Tạo thumbnail nhỏ hơn cho public view
+              thumbnailUrl: img.url
+                ? img.url.replace("/upload/", "/upload/w_400,h_250,c_fill/")
+                : null,
+            }))
+          : [];
+
+        return {
+          ...ad,
+          images: optimizedImages,
+          imageCount: ad.images ? ad.images.length : 0,
+          contentPreview: ad.content
+            ? ad.content.substring(0, 200) +
+              (ad.content.length > 200 ? "..." : "")
+            : "",
+        };
+      });
+
+      return optimizedAdvertisements;
     } catch (error) {
       throw new Error(`Failed to get public advertisements: ${error.message}`);
     }
@@ -22,7 +52,7 @@ const advertisementService = {
     try {
       const {
         page = 1,
-        limit = 10,
+        limit = 5,
         filters = {},
         sortBy = "createdAt",
         sortOrder = "desc",
@@ -35,13 +65,46 @@ const advertisementService = {
 
       const skip = (page - 1) * limit;
 
+      // Tối ưu: Select chỉ các field cần thiết, tạo thumbnail cho ảnh
       const [advertisements, total] = await Promise.all([
-        Advertisement.find(filter).sort(sort).skip(skip).limit(limit),
+        Advertisement.find(filter)
+          .select(
+            "title content startDate endDate isActive images createdAt updatedAt"
+          ) // Chỉ select các field cần thiết
+          .sort(sort)
+          .skip(skip)
+          .limit(limit)
+          .lean(), // Sử dụng lean() để tăng performance
         Advertisement.countDocuments(filter),
       ]);
 
+      // Tối ưu ảnh: Chỉ trả về thumbnail và giới hạn số lượng ảnh
+      const optimizedAdvertisements = advertisements.map((ad) => {
+        const optimizedImages = ad.images
+          ? ad.images.slice(0, 3).map((img) => ({
+              url: img.url,
+              public_id: img.public_id,
+              format: img.format,
+              // Tạo thumbnail URL cho Cloudinary
+              thumbnailUrl: img.url
+                ? img.url.replace("/upload/", "/upload/w_300,h_200,c_fill/")
+                : null,
+            }))
+          : [];
+
+        return {
+          ...ad,
+          images: optimizedImages,
+          imageCount: ad.images ? ad.images.length : 0, // Thêm số lượng ảnh tổng
+          contentPreview: ad.content
+            ? ad.content.substring(0, 150) +
+              (ad.content.length > 150 ? "..." : "")
+            : "", // Tóm tắt content
+        };
+      });
+
       return {
-        advertisements,
+        advertisements: optimizedAdvertisements,
         pagination: {
           currentPage: page,
           totalPages: Math.ceil(total / limit),

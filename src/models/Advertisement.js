@@ -32,5 +32,18 @@ advertisementSchema.index({
   endDate: 1,
 });
 
+// Compound index for public queries
+advertisementSchema.index({
+  isActive: 1,
+  startDate: 1,
+  createdAt: -1,
+});
+
+// Text index for search functionality
+advertisementSchema.index({
+  title: "text",
+  content: "text",
+});
+
 const Advertisement = mongoose.model("Advertisement", advertisementSchema);
 module.exports = Advertisement;

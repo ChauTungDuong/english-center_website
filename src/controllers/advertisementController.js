@@ -25,7 +25,12 @@ const getPublicAdvertisements = async (req, res) => {
 // GET /api/advertisements
 const getAllAdvertisements = async (req, res) => {
   try {
-    const { page = 1, limit = 10, isActive, search } = req.query;
+    const { page = 1, limit = 5, isActive, search } = req.query; // Giảm limit mặc định từ 10 xuống 5
+
+    // Giới hạn limit tối đa để tránh tải quá nhiều dữ liệu
+    const maxLimit = 20;
+    const actualLimit = Math.min(parseInt(limit), maxLimit);
+
     const filters = {};
 
     // Only filter by isActive if it has a valid value (not empty string)
@@ -42,7 +47,7 @@ const getAllAdvertisements = async (req, res) => {
 
     const result = await advertisementService.getAllAdvertisements({
       page: parseInt(page),
-      limit: parseInt(limit),
+      limit: actualLimit,
       filters,
     });
 
@@ -54,6 +59,7 @@ const getAllAdvertisements = async (req, res) => {
         totalPages: result.pagination.totalPages,
         totalItems: result.pagination.totalItems,
         itemsPerPage: result.pagination.limit,
+        maxLimit: maxLimit, // Thông báo cho frontend biết giới hạn
       },
       message: "Advertisements retrieved successfully",
     });
