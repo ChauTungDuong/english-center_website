@@ -424,6 +424,21 @@ const parentService = {
       const childrenPayments = {};
       let totalUnpaidAmount = 0;
 
+      // Lấy tất cả payment requests của parent cho các payment chưa đóng
+      const paymentRequestMap = {};
+      const paymentIds = unpaidPayments.map((p) => p._id);
+      if (paymentIds.length > 0) {
+        const ParentPaymentRequest = require("../../models/ParentPaymentRequest");
+        const requests = await ParentPaymentRequest.find({
+          parentId,
+          paymentId: { $in: paymentIds },
+        }).sort({ requestDate: -1 });
+        // Map paymentId -> status (ưu tiên request mới nhất)
+        requests.forEach((req) => {
+          paymentRequestMap[req.paymentId.toString()] = req.status;
+        });
+      }
+
       unpaidPayments.forEach((payment) => {
         const studentId = payment.studentId._id.toString();
         const unpaidAmount = payment.amountDue - payment.amountPaid;
@@ -449,6 +464,8 @@ const parentService = {
           unpaidAmount: unpaidAmount,
           totalLessons: payment.totalLessons || 0,
           attendedLessons: payment.attendedLessons || 0,
+          paymentRequestStatus:
+            paymentRequestMap[payment._id.toString()] || null,
         });
 
         childrenPayments[studentId].totalUnpaidAmount += unpaidAmount;

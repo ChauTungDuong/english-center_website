@@ -150,8 +150,11 @@ const paymentService = {
       if (classId) filter.classId = classId;
       if (month) filter.month = parseInt(month);
       if (year) filter.year = parseInt(year);
-      if (discountPercentage !== undefined) {
-        filter.discountPercentage = parseFloat(discountPercentage);
+      if (discountPercentage !== undefined && discountPercentage !== "") {
+        const parsedDiscount = parseFloat(discountPercentage);
+        if (!isNaN(parsedDiscount)) {
+          filter.discountPercentage = parsedDiscount;
+        }
       }
 
       // Build sort object
