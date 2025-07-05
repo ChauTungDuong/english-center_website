@@ -47,7 +47,7 @@ class NotificationScheduler {
 
     // Chạy hàng ngày lúc 8:00 AM để gửi daily notifications
     const dailyJob = cron.schedule(
-      "40 12 * * *",
+      "30 13 * * *",
       async () => {
         console.log("📅 Processing daily auto notifications...");
         try {
