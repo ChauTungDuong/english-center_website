@@ -572,38 +572,38 @@ const statisticService = {
               from: "users",
               localField: "userId",
               foreignField: "_id",
-              as: "user"
-            }
+              as: "user",
+            },
           },
           {
             $match: {
-              "user.isActive": true
-            }
+              "user.isActive": true,
+            },
           },
           {
-            $count: "count"
-          }
-        ]).then(result => result[0]?.count || 0),
+            $count: "count",
+          },
+        ]).then((result) => result[0]?.count || 0),
 
         // Active teachers
         Teacher.aggregate([
           {
             $lookup: {
               from: "users",
-              localField: "userId", 
+              localField: "userId",
               foreignField: "_id",
-              as: "user"
-            }
+              as: "user",
+            },
           },
           {
             $match: {
-              "user.isActive": true
-            }
+              "user.isActive": true,
+            },
           },
           {
-            $count: "count"
-          }
-        ]).then(result => result[0]?.count || 0),
+            $count: "count",
+          },
+        ]).then((result) => result[0]?.count || 0),
 
         // Active parents
         Parent.aggregate([
@@ -611,22 +611,22 @@ const statisticService = {
             $lookup: {
               from: "users",
               localField: "userId",
-              foreignField: "_id", 
-              as: "user"
-            }
+              foreignField: "_id",
+              as: "user",
+            },
           },
           {
             $match: {
-              "user.isActive": true
-            }
+              "user.isActive": true,
+            },
           },
           {
-            $count: "count"
-          }
-        ]).then(result => result[0]?.count || 0),
+            $count: "count",
+          },
+        ]).then((result) => result[0]?.count || 0),
 
         // Active classes
-        Class.countDocuments({ isActive: true }),
+        Class.countDocuments({ isAvailable: true }),
 
         // Active advertisements
         Advertisement.countDocuments({ isActive: true }),
@@ -637,35 +637,50 @@ const statisticService = {
         total: totalStudents,
         active: activeStudents,
         inactive: totalStudents - activeStudents,
-        activePercentage: totalStudents > 0 ? ((activeStudents / totalStudents) * 100).toFixed(2) : "0.00",
+        activePercentage:
+          totalStudents > 0
+            ? ((activeStudents / totalStudents) * 100).toFixed(2)
+            : "0.00",
       };
 
       const teacherStats = {
-        total: totalTeachers, 
+        total: totalTeachers,
         active: activeTeachers,
         inactive: totalTeachers - activeTeachers,
-        activePercentage: totalTeachers > 0 ? ((activeTeachers / totalTeachers) * 100).toFixed(2) : "0.00",
+        activePercentage:
+          totalTeachers > 0
+            ? ((activeTeachers / totalTeachers) * 100).toFixed(2)
+            : "0.00",
       };
 
       const parentStats = {
         total: totalParents,
         active: activeParents,
         inactive: totalParents - activeParents,
-        activePercentage: totalParents > 0 ? ((activeParents / totalParents) * 100).toFixed(2) : "0.00",
+        activePercentage:
+          totalParents > 0
+            ? ((activeParents / totalParents) * 100).toFixed(2)
+            : "0.00",
       };
 
       const classStats = {
         total: totalClasses,
         active: activeClasses,
         inactive: totalClasses - activeClasses,
-        activePercentage: totalClasses > 0 ? ((activeClasses / totalClasses) * 100).toFixed(2) : "0.00",
+        activePercentage:
+          totalClasses > 0
+            ? ((activeClasses / totalClasses) * 100).toFixed(2)
+            : "0.00",
       };
 
       const advertisementStats = {
         total: totalAdvertisements,
         active: activeAdvertisements,
         inactive: totalAdvertisements - activeAdvertisements,
-        activePercentage: totalAdvertisements > 0 ? ((activeAdvertisements / totalAdvertisements) * 100).toFixed(2) : "0.00",
+        activePercentage:
+          totalAdvertisements > 0
+            ? ((activeAdvertisements / totalAdvertisements) * 100).toFixed(2)
+            : "0.00",
       };
 
       // Tổng người dùng trong hệ thống
@@ -676,13 +691,17 @@ const statisticService = {
         totalUsers,
         totalActiveUsers,
         totalInactiveUsers: totalUsers - totalActiveUsers,
-        userActivePercentage: totalUsers > 0 ? ((totalActiveUsers / totalUsers) * 100).toFixed(2) : "0.00",
+        userActivePercentage:
+          totalUsers > 0
+            ? ((totalActiveUsers / totalUsers) * 100).toFixed(2)
+            : "0.00",
       };
 
       return {
         summary: {
           totalEntities: totalUsers + totalClasses + totalAdvertisements,
-          totalActiveEntities: totalActiveUsers + activeClasses + activeAdvertisements,
+          totalActiveEntities:
+            totalActiveUsers + activeClasses + activeAdvertisements,
         },
         users: userStats,
         students: studentStats,
@@ -693,7 +712,9 @@ const statisticService = {
         lastUpdated: new Date(),
       };
     } catch (error) {
-      throw new Error(`Lỗi khi lấy thống kê tổng quan hệ thống: ${error.message}`);
+      throw new Error(
+        `Lỗi khi lấy thống kê tổng quan hệ thống: ${error.message}`
+      );
     }
   },
 };
