@@ -202,36 +202,31 @@ const studentService = {
 
         if (classId) {
           try {
-            const attendance = await Attendance.findOne({
+            // Tìm tất cả các attendance records cho lớp này (không chỉ một record)
+            const attendanceRecords = await Attendance.find({
               classId: classId,
-            });
+            }).sort({ date: 1 }); // Sắp xếp theo ngày
 
-            if (
-              attendance &&
-              attendance.records &&
-              Array.isArray(attendance.records)
-            ) {
-              let totalLessons = attendance.records.length;
+            if (attendanceRecords && attendanceRecords.length > 0) {
+              let totalLessons = 0;
               let absentLessons = 0;
               let attendedLessons = 0;
 
-              // Đếm số buổi học và buổi nghỉ
-              attendance.records.forEach((record) => {
-                // Kiểm tra an toàn record.students
-                if (
-                  record &&
-                  record.students &&
-                  Array.isArray(record.students)
-                ) {
-                  const studentRecord = record.students.find(
+              // Đếm số buổi học và buổi nghỉ từ tất cả attendance records
+              attendanceRecords.forEach((attendance) => {
+                if (attendance.students && Array.isArray(attendance.students)) {
+                  const studentRecord = attendance.students.find(
                     (s) =>
                       s && s.studentId && s.studentId.toString() === studentId
                   );
 
-                  if (studentRecord && studentRecord.isAbsent) {
-                    absentLessons++;
-                  } else if (studentRecord) {
-                    attendedLessons++;
+                  if (studentRecord) {
+                    totalLessons++;
+                    if (studentRecord.isAbsent) {
+                      absentLessons++;
+                    } else {
+                      attendedLessons++;
+                    }
                   }
                 }
               });
