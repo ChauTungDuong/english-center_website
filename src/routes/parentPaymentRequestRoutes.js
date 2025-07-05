@@ -31,7 +31,7 @@ router.post(
 
 // Lấy tất cả yêu cầu thanh toán (chỉ Admin)
 router.get(
-  "/all",
+  "/",
   verifyRole(["Admin"]),
   parentPaymentRequestController.getAllPaymentRequests
 );
