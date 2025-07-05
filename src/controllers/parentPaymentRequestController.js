@@ -192,6 +192,61 @@ const parentPaymentRequestController = {
       });
     }
   },
+
+  // API: Parent cập nhật lại payment request (retry)
+  async retryPaymentRequest(req, res) {
+    try {
+      const { requestId } = req.params;
+      const { amount } = req.body;
+      const currentUserId = req.user.id;
+      // Lấy parent record dựa trên userId từ token
+      const currentParent = await Parent.findOne({ userId: currentUserId });
+      if (!currentParent) {
+        return res.status(404).json({
+          msg: "Không tìm thấy thông tin phụ huynh",
+        });
+      }
+      // Lấy request
+      const request = await parentPaymentRequestService.getById(requestId);
+      if (!request) {
+        return res.status(404).json({
+          msg: "Không tìm thấy yêu cầu thanh toán",
+        });
+      }
+      // Kiểm tra quyền sở hữu
+      if (request.parentId._id.toString() !== currentParent._id.toString()) {
+        return res.status(403).json({
+          msg: "Bạn không có quyền cập nhật yêu cầu thanh toán này",
+        });
+      }
+      // Chỉ cho phép sửa khi trạng thái là rejected hoặc pending
+      if (!["rejected", "pending"].includes(request.status)) {
+        return res.status(400).json({
+          msg: "Chỉ có thể cập nhật lại yêu cầu khi trạng thái là 'rejected' hoặc 'pending'",
+        });
+      }
+      // Xử lý file upload
+      const uploadedFile =
+        req.files && req.files["proof"] ? req.files["proof"][0] : null;
+      // Gọi service để update
+      const updatedRequest =
+        await parentPaymentRequestService.retryPaymentRequest({
+          requestId,
+          amount,
+          uploadedFile,
+          parentId: currentParent._id.toString(),
+        });
+      return res.status(200).json({
+        msg: "Cập nhật lại yêu cầu thanh toán thành công",
+        data: updatedRequest,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        msg: "Lỗi khi cập nhật lại yêu cầu thanh toán",
+        error: error.message,
+      });
+    }
+  },
 };
 
 module.exports = parentPaymentRequestController;

@@ -456,7 +456,93 @@ const parentPaymentRequestService = {
     } catch (error) {
       throw new Error(`Lỗi khi lấy yêu cầu thanh toán: ${error.message}`);
     }
-  }
+  },
+
+  /**
+   * Parent cập nhật lại payment request (chỉ khi bị từ chối hoặc pending)
+   * @param {Object} params - { requestId, amount, uploadedFile, parentId }
+   * @returns {Object} Updated payment request
+   */
+  async retryPaymentRequest({ requestId, amount, uploadedFile, parentId }) {
+    return await withTransaction(async (session) => {
+      try {
+        if (!requestId || !parentId) {
+          throw new Error("Thiếu thông tin bắt buộc: requestId, parentId");
+        }
+        const request = await ParentPaymentRequest.findById(requestId).session(
+          session
+        );
+        if (!request) {
+          throw new Error("Không tìm thấy yêu cầu thanh toán");
+        }
+        if (request.parentId.toString() !== parentId) {
+          throw new Error("Bạn không có quyền cập nhật yêu cầu này");
+        }
+        if (!["rejected", "pending"].includes(request.status)) {
+          throw new Error(
+            "Chỉ có thể cập nhật lại khi trạng thái là 'rejected' hoặc 'pending'"
+          );
+        }
+        // Nếu có file mới thì upload lại lên Cloudinary
+        let proofImageUrl = request.proofImageUrl;
+        let proofImagePublicId = request.proofImagePublicId;
+        if (uploadedFile) {
+          // Nếu có ảnh cũ thì xóa trên Cloudinary
+          if (proofImagePublicId) {
+            try {
+              await cloudinaryService.deleteImage(proofImagePublicId);
+            } catch (e) {
+              /* ignore */
+            }
+          }
+          const uploadResult = await cloudinaryService.uploadImage(
+            uploadedFile,
+            {
+              folder: "payment-proofs",
+              filename: `payment_${request.paymentId}_${Date.now()}`,
+            }
+          );
+          proofImageUrl = uploadResult.secure_url;
+          proofImagePublicId = uploadResult.public_id;
+        }
+        // Cập nhật lại amount nếu truyền vào
+        if (amount !== undefined && amount !== null && amount !== "") {
+          const parsedAmount = parseFloat(amount);
+          if (!isNaN(parsedAmount) && parsedAmount > 0) {
+            request.amount = parsedAmount;
+          }
+        }
+        request.proofImageUrl = proofImageUrl;
+        request.proofImagePublicId = proofImagePublicId;
+        request.status = "pending"; // Đặt lại trạng thái về pending
+        request.adminNote = "";
+        request.processedBy = undefined;
+        request.processedDate = undefined;
+        await request.save({ session });
+        return await ParentPaymentRequest.findById(requestId)
+          .populate("parentId", "userId")
+          .populate({
+            path: "parentId",
+            populate: { path: "userId", select: "name email phoneNumber" },
+          })
+          .populate("studentId", "userId")
+          .populate({
+            path: "studentId",
+            populate: { path: "userId", select: "name email" },
+          })
+          .populate("paymentId", "month year amountDue amountPaid classId")
+          .populate({
+            path: "paymentId",
+            populate: { path: "classId", select: "className grade" },
+          })
+          .session(session);
+      } catch (error) {
+        throw new Error(
+          `Lỗi khi cập nhật lại yêu cầu thanh toán: ${error.message}`
+        );
+      }
+    });
+  },
 };
 
 module.exports = parentPaymentRequestService;

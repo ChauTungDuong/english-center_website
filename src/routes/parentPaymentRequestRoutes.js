@@ -50,4 +50,13 @@ router.patch(
   parentPaymentRequestController.processPaymentRequest
 );
 
+// API: Parent cập nhật lại payment request (chỉ khi bị từ chối hoặc pending)
+router.patch(
+  "/:requestId/retry",
+  verifyRole(["Parent"]),
+  uploadPaymentProof.fields([{ name: "proof", maxCount: 1 }]),
+  handleUploadError,
+  parentPaymentRequestController.retryPaymentRequest
+);
+
 module.exports = router;

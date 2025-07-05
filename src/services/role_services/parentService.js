@@ -433,15 +433,19 @@ const parentService = {
           parentId,
           paymentId: { $in: paymentIds },
         }).sort({ requestDate: -1 });
-        // Map paymentId -> status (ưu tiên request mới nhất)
+        // Map paymentId -> request object (ưu tiên request mới nhất)
         requests.forEach((req) => {
-          paymentRequestMap[req.paymentId.toString()] = req.status;
+          paymentRequestMap[req.paymentId.toString()] = req;
         });
       }
 
       unpaidPayments.forEach((payment) => {
         const studentId = payment.studentId._id.toString();
         const unpaidAmount = payment.amountDue - payment.amountPaid;
+        const reqObj = paymentRequestMap[payment._id.toString()];
+        const paymentRequestStatus = reqObj ? reqObj.status : null;
+        const parentRequestId = reqObj ? reqObj._id : null;
+        const hasPaymentRequest = !!reqObj;
 
         if (!childrenPayments[studentId]) {
           childrenPayments[studentId] = {
@@ -464,8 +468,9 @@ const parentService = {
           unpaidAmount: unpaidAmount,
           totalLessons: payment.totalLessons || 0,
           attendedLessons: payment.attendedLessons || 0,
-          paymentRequestStatus:
-            paymentRequestMap[payment._id.toString()] || null,
+          paymentRequestStatus,
+          hasPaymentRequest,
+          parentRequestId,
         });
 
         childrenPayments[studentId].totalUnpaidAmount += unpaidAmount;
