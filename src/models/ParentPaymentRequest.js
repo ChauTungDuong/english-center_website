@@ -62,9 +62,12 @@ const parentPaymentRequestSchema = new mongoose.Schema(
 );
 
 // Indexes for better query performance
-parentPaymentRequestSchema.index({ parentId: 1, status: 1 });
-parentPaymentRequestSchema.index({ paymentId: 1, status: 1 });
-parentPaymentRequestSchema.index({ status: 1, requestDate: -1 });
+parentPaymentRequestSchema.index({ parentId: 1, status: 1 }); // Query requests by parent and status
+parentPaymentRequestSchema.index({ paymentId: 1 }); // Find requests for specific payment
+parentPaymentRequestSchema.index({ status: 1, requestDate: -1 }); // Query by status, sorted by date
+parentPaymentRequestSchema.index({ studentId: 1, status: 1 }); // Query by student and status
+parentPaymentRequestSchema.index({ createdAt: -1 }); // Sort by creation date
+parentPaymentRequestSchema.index({ processedDate: -1 }); // Query processed requests
 
 const ParentPaymentRequest = mongoose.model(
   "ParentPaymentRequest",

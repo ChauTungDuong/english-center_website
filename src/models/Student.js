@@ -14,5 +14,12 @@ const studentSchema = new mongoose.Schema(
     minimize: false,
   }
 );
+
+// Indexes for better query performance
+studentSchema.index({ userId: 1 }, { unique: true }); // One student per user
+studentSchema.index({ parentId: 1 }); // Query students by parent
+studentSchema.index({ classId: 1 }); // Query students by class
+studentSchema.index({ createdAt: -1 }); // Sort by creation date
+
 const Student = mongoose.model("Student", studentSchema);
 module.exports = Student;

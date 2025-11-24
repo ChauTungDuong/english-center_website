@@ -16,5 +16,12 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Indexes for better query performance
+userSchema.index({ email: 1 }, { unique: true }); // Unique email for authentication
+userSchema.index({ role: 1, isActive: 1 }); // Query active users by role
+userSchema.index({ phoneNumber: 1 }); // Search by phone number
+userSchema.index({ createdAt: -1 }); // Sort by creation date
+
 const User = mongoose.model("User", userSchema);
 module.exports = User;
